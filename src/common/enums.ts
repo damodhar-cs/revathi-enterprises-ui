@@ -47,5 +47,4 @@ export const MATERIAL_OPTIONS = [
   "Metal",
   "Ceramic",
   "Silicone",
-  "Leather",
 ] as const;
