@@ -6,8 +6,8 @@ import {
   VariantsQueryParams,
 } from "../types";
 
-// Use proxy path for API calls
-const API_BASE_URL = "/api";
+// Use backend URL from environment variable (production) or proxy path (development)
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "/api";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
