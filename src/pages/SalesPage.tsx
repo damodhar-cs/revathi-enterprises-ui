@@ -5,7 +5,7 @@ import { Search, Filter, Package, Eye, Calendar, TrendingUp, DollarSign, Shoppin
 import { Button } from '../components/Button'
 import FilterPanel from '../components/FilterPanel'
 import { salesApi } from '../services/api'
-import { BRANCH_OPTIONS } from '../common/enums'
+import { BRANCH_OPTIONS, BRAND_OPTIONS } from '../common/enums'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
 
 // Sale interface - CMS schema only
@@ -54,6 +54,8 @@ const SalesPage: React.FC = () => {
   // Filter states - selected vs applied
   const [selectedBranch, setSelectedBranch] = useState('')
   const [appliedBranch, setAppliedBranch] = useState('')
+  const [selectedBrand, setSelectedBrand] = useState('')
+  const [appliedBrand, setAppliedBrand] = useState('')
   const [selectedDateRange, setSelectedDateRange] = useState({ start: '', end: '' })
   const [appliedDateRange, setAppliedDateRange] = useState({ start: '', end: '' })
   
@@ -74,18 +76,29 @@ const SalesPage: React.FC = () => {
   // Fetch sales from API with applied filters
   const { data: salesResponse, isLoading, error, refetch } = useQuery(
     ['sales', { 
-      branch: appliedBranch, 
-      startDate: appliedDateRange.start,
-      endDate: appliedDateRange.end
+      branch: appliedBranch,
+      brand: appliedBrand,
+      dateRange: appliedDateRange
     }],
-    () => salesApi.getAllSales({
-      branch: appliedBranch || undefined,
-      startDate: appliedDateRange.start || undefined,
-      endDate: appliedDateRange.end || undefined,
-    }),
+    () => {
+      const filters: any = {
+        branch: appliedBranch || undefined,
+        brand: appliedBrand || undefined,
+      };
+
+      // Date range filter in CMS format (as object, not stringified)
+      if (appliedDateRange.start && appliedDateRange.end) {
+        filters.created_at = {
+          $gte: new Date(appliedDateRange.start).toISOString(),
+          $lte: new Date(appliedDateRange.end).toISOString()
+        };
+      }
+
+      return salesApi.getAllSales(filters);
+    },
     {
       keepPreviousData: true,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       onError: (error) => {
         console.error('Error fetching sales:', error)
       }
@@ -96,16 +109,27 @@ const SalesPage: React.FC = () => {
   const { data: statistics } = useQuery(
     ['sales-statistics', { 
       branch: appliedBranch,
-      startDate: appliedDateRange.start,
-      endDate: appliedDateRange.end
+      brand: appliedBrand,
+      dateRange: appliedDateRange
     }],
-    () => salesApi.getSalesStatistics({
-      branch: appliedBranch || undefined,
-      startDate: appliedDateRange.start || undefined,
-      endDate: appliedDateRange.end || undefined,
-    }),
+    () => {
+      const filters: any = {
+        branch: appliedBranch || undefined,
+        brand: appliedBrand || undefined,
+      };
+
+      // Date range filter for statistics (as object, not stringified)
+      if (appliedDateRange.start && appliedDateRange.end) {
+        filters.created_at = {
+          $gte: new Date(appliedDateRange.start).toISOString(),
+          $lte: new Date(appliedDateRange.end).toISOString()
+        };
+      }
+
+      return salesApi.getSalesStatistics(filters);
+    },
     {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       onError: (error) => {
         console.error('Error fetching sales statistics:', error)
       }
@@ -161,6 +185,7 @@ const SalesPage: React.FC = () => {
     // Small delay for better UX
     setTimeout(() => {
       setAppliedBranch(selectedBranch)
+      setAppliedBrand(selectedBrand)
       setAppliedDateRange(selectedDateRange)
       setCurrentPage(1) // Reset to first page when filters change
       setShowFilterPanel(false)
@@ -175,7 +200,9 @@ const SalesPage: React.FC = () => {
     
     setTimeout(() => {
       setSelectedBranch('')
+      setSelectedBrand('')
       setAppliedBranch('')
+      setAppliedBrand('')
       setSelectedDateRange({ start: '', end: '' })
       setAppliedDateRange({ start: '', end: '' })
       setCurrentPage(1)
@@ -196,6 +223,14 @@ const SalesPage: React.FC = () => {
       placeholder: 'All Branches'
     },
     {
+      key: 'brand',
+      label: 'Brand',
+      type: 'select' as const,
+      value: selectedBrand,
+      options: BRAND_OPTIONS.map(brand => ({ label: brand, value: brand })),
+      placeholder: 'All Brands'
+    },
+    {
       key: 'dateRange',
       label: 'Sale Date Range',
       type: 'dateRange' as const,
@@ -207,6 +242,8 @@ const SalesPage: React.FC = () => {
   const handleFilterFieldChange = (key: string, value: string | string[] | { start: string; end: string }) => {
     if (key === 'branch') {
       setSelectedBranch(value as string)
+    } else if (key === 'brand') {
+      setSelectedBrand(value as string)
     } else if (key === 'dateRange') {
       setSelectedDateRange(value as { start: string; end: string })
     }
@@ -258,11 +295,18 @@ const SalesPage: React.FC = () => {
     setExportMessage(null)
 
     try {
-      const exportData = {
+      const exportData: any = {
         recipientEmail,
         branch: appliedBranch || undefined,
-        startDate: appliedDateRange.start || undefined,
-        endDate: appliedDateRange.end || undefined,
+        brand: appliedBrand || undefined,
+      };
+
+      // Date range filter for export (as object, not stringified)
+      if (appliedDateRange.start && appliedDateRange.end) {
+        exportData.created_at = {
+          $gte: new Date(appliedDateRange.start).toISOString(),
+          $lte: new Date(appliedDateRange.end).toISOString()
+        };
       }
 
       await salesApi.exportSales(exportData)
@@ -472,7 +516,7 @@ const SalesPage: React.FC = () => {
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
-                {(appliedBranch || appliedDateRange.start || appliedDateRange.end) && (
+                {(appliedBranch || appliedBrand || appliedDateRange.start || appliedDateRange.end) && (
                   <span className="ml-2 px-2 py-0.5 text-xs bg-primary-100 text-primary-600 rounded-full">
                     Active
                   </span>
@@ -511,7 +555,7 @@ const SalesPage: React.FC = () => {
                 <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No sales found</h3>
                 <p className="text-gray-500 mb-4">
-                  {searchTerm || appliedBranch || appliedDateRange.start || appliedDateRange.end
+                  {searchTerm || appliedBranch || appliedBrand || appliedDateRange.start || appliedDateRange.end
                     ? "Try adjusting your search or filters to find what you're looking for."
                     : "No sales have been recorded yet."}
                 </p>
@@ -660,9 +704,10 @@ const SalesPage: React.FC = () => {
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Total Records: {totalSalesCount}</li>
                     {appliedBranch && <li>• Branch: {appliedBranch}</li>}
+                    {appliedBrand && <li>• Brand: {appliedBrand}</li>}
                     {appliedDateRange.start && <li>• Start Date: {new Date(appliedDateRange.start).toLocaleDateString('en-IN')}</li>}
                     {appliedDateRange.end && <li>• End Date: {new Date(appliedDateRange.end).toLocaleDateString('en-IN')}</li>}
-                    {!appliedBranch && !appliedDateRange.start && !appliedDateRange.end && <li>• No filters applied (All sales data)</li>}
+                    {!appliedBranch && !appliedBrand && !appliedDateRange.start && !appliedDateRange.end && <li>• No filters applied (All sales data)</li>}
                   </ul>
                 </div>
 

@@ -8,6 +8,7 @@ import { Product } from '../types'
 import { productsApi } from '../services/api'
 import ProductForm from '../components/ProductForm'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
+import { BRAND_OPTIONS, CATEGORY_OPTIONS } from '../common/enums'
 
 const Products: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -15,6 +16,10 @@ const Products: React.FC = () => {
   // Filter states - selected vs applied
   const [selectedCategory, setSelectedCategory] = useState('')
   const [appliedCategory, setAppliedCategory] = useState('')
+  const [selectedBrand, setSelectedBrand] = useState('')
+  const [appliedBrand, setAppliedBrand] = useState('')
+  const [selectedDateRange, setSelectedDateRange] = useState({ start: '', end: '' })
+  const [appliedDateRange, setAppliedDateRange] = useState({ start: '', end: '' })
   
   const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [isApplyingFilters, setIsApplyingFilters] = useState(false)
@@ -57,38 +62,39 @@ const Products: React.FC = () => {
   // Fetch products with applied filters
   const { data: products = [], isLoading, error, refetch, isFetching } = useQuery(
     ['products', { 
-      category: appliedCategory, 
+      category: appliedCategory,
+      brand: appliedBrand,
+      dateRange: appliedDateRange,
       search: debouncedSearchTerm,
       skip: (currentPage - 1) * itemsPerPage,
       limit: itemsPerPage
     }],
-    () => productsApi.getAllProducts({
-      category: appliedCategory || undefined,
-      search: debouncedSearchTerm || undefined,
-      skip: (currentPage - 1) * itemsPerPage,
-      limit: itemsPerPage,
-      order: -1, // -1 for desc, 1 for asc
-      sort: 'updatedAt'
-    }),
+    () => {
+      const filters: any = {
+        category: appliedCategory || undefined,
+        brand: appliedBrand || undefined,
+        search: debouncedSearchTerm || undefined,
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        order: -1,
+        sort: 'updated_at'
+      };
+
+      // Date range filter in CMS format (as object, not stringified)
+      if (appliedDateRange.start && appliedDateRange.end) {
+        filters.created_at = {
+          $gte: new Date(appliedDateRange.start).toISOString(),
+          $lte: new Date(appliedDateRange.end).toISOString()
+        };
+      }
+
+      return productsApi.getAllProducts(filters);
+    },
     {
       keepPreviousData: true,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     }
   )
-
-  // Get unique categories from ALL products
-  const { data: allProductsForFilters = [] } = useQuery(
-    ['all-products-for-filters'],
-    () => productsApi.getAllProducts(),
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes (longer cache for filter options)
-    }
-  )
-
-  const categories = React.useMemo(() => {
-    const cats = [...new Set(allProductsForFilters.map(p => p.category))].filter(Boolean)
-    return cats.sort()
-  }, [allProductsForFilters])
 
   const filteredItems = products
   const paginatedItems = filteredItems
@@ -100,7 +106,7 @@ const Products: React.FC = () => {
   // Reset to first page when filters or search change
   React.useEffect(() => {
     setCurrentPage(1)
-  }, [appliedCategory, debouncedSearchTerm])
+  }, [appliedCategory, appliedBrand, appliedDateRange, debouncedSearchTerm])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -218,6 +224,8 @@ const Products: React.FC = () => {
   const applyFilters = async () => {
     setIsApplyingFilters(true)
     setAppliedCategory(selectedCategory)
+    setAppliedBrand(selectedBrand)
+    setAppliedDateRange(selectedDateRange)
     setCurrentPage(1)
     
     setTimeout(() => {
@@ -230,7 +238,11 @@ const Products: React.FC = () => {
   const clearFilters = async () => {
     setIsClearingFilters(true)
     setSelectedCategory('')
+    setSelectedBrand('')
+    setSelectedDateRange({ start: '', end: '' })
     setAppliedCategory('')
+    setAppliedBrand('')
+    setAppliedDateRange({ start: '', end: '' })
     setCurrentPage(1)
     
     setTimeout(() => {
@@ -247,14 +259,33 @@ const Products: React.FC = () => {
       label: 'Category',
       type: 'select' as const,
       value: selectedCategory,
-      options: categories.map(cat => ({ label: cat, value: cat })),
+      options: CATEGORY_OPTIONS.map(cat => ({ label: cat, value: cat })),
       placeholder: 'All Categories'
+    },
+    {
+      key: 'brand',
+      label: 'Brand',
+      type: 'select' as const,
+      value: selectedBrand,
+      options: BRAND_OPTIONS.map(brand => ({ label: brand, value: brand })),
+      placeholder: 'All Brands'
+    },
+    {
+      key: 'dateRange',
+      label: 'Date Range',
+      type: 'dateRange' as const,
+      value: selectedDateRange,
+      placeholder: 'Select date range'
     }
   ]
 
   const handleFilterFieldChange = (key: string, value: string | string[] | { start: string; end: string }) => {
     if (key === 'category') {
       setSelectedCategory(value as string)
+    } else if (key === 'brand') {
+      setSelectedBrand(value as string)
+    } else if (key === 'dateRange') {
+      setSelectedDateRange(value as { start: string; end: string })
     }
   }
 
@@ -391,7 +422,7 @@ const Products: React.FC = () => {
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
-              {appliedCategory && (
+              {(appliedCategory || appliedBrand || appliedDateRange.start || appliedDateRange.end) && (
                 <span className="ml-2 px-2 py-0.5 text-xs bg-primary-100 text-primary-600 rounded-full">
                   Active
                 </span>

@@ -45,7 +45,7 @@ interface InventoryStatus {
 }
 
 interface TopProduct {
-  productName: string
+  product_name: string
   brand: string
   category: string
   salesCount: number
@@ -55,14 +55,14 @@ interface TopProduct {
 
 interface RecentSale {
   _id: string
-  productName: string
+  product_name: string
   sku: string
   brand: string
   customer: {
     name: string
     phone: string
   }
-  sellingPrice: number
+  selling_price: number
   profit: number
   createdAt: string
   branch: string
@@ -88,7 +88,10 @@ const Dashboard: React.FC = () => {
     }
   )
 
-  const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount === null || amount === undefined) return '₹0'
+    return `₹${amount.toLocaleString('en-IN')}`
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -359,15 +362,15 @@ const Dashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {stats.topProducts.map((product, index) => (
-                  <tr key={index} className="border-b border-gray-100 last:border-0">
+                {stats.topProducts.map((product) => (
+                  <tr key={`${product.product_name}-${product.brand}`} className="border-b border-gray-100 last:border-0">
                     <td className="py-3">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3 text-xs md:text-sm font-semibold text-blue-600">
-                          {index + 1}
+                          {stats.topProducts.indexOf(product) + 1}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs md:text-sm font-medium text-gray-900 truncate">{product.productName}</p>
+                          <p className="text-xs md:text-sm font-medium text-gray-900 truncate">{product.product_name}</p>
                           <p className="text-xs text-gray-500">{product.brand}</p>
                         </div>
                       </div>
@@ -414,11 +417,11 @@ const Dashboard: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-1">
                   <div className="min-w-0 flex-1 mr-2">
-                    <p className="text-xs md:text-sm font-medium text-gray-900 truncate">{sale.productName}</p>
-                    <p className="text-xs text-gray-500">{sale.customer.name} • {sale.customer.phone}</p>
+                    <p className="text-xs md:text-sm font-medium text-gray-900 truncate">{sale.product_name}</p>
+                    <p className="text-xs text-gray-500">{sale.customer?.name || 'N/A'} • {sale.customer?.phone || 'N/A'}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-xs md:text-sm font-semibold text-gray-900">{formatCurrency(sale.sellingPrice)}</p>
+                    <p className="text-xs md:text-sm font-semibold text-gray-900">{formatCurrency(sale.selling_price)}</p>
                     <p className="text-xs text-green-600">+{formatCurrency(sale.profit)}</p>
                   </div>
                 </div>

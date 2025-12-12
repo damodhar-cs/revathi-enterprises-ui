@@ -8,7 +8,7 @@ import FilterPanel from '../components/FilterPanel'
 import { Variant } from '../types'
 import api, { variantsApi } from '../services/api'
 import { MIN_STOCK_COUNT, DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/common/constants'
-import { BRANCH_OPTIONS } from '@/common/enums'
+import { BRANCH_OPTIONS, BRAND_OPTIONS, CATEGORY_OPTIONS } from '@/common/enums'
 
 const Variants: React.FC = () => {
   const navigate = useNavigate()
@@ -71,36 +71,30 @@ const Variants: React.FC = () => {
     navigate(location.pathname, { replace: true, state: null });
   }, [location.state])
 
-  // Fetch all variants for filter options (no filters applied)
-  const { data: allVariantsForFilters = [] } = useQuery(
-    ['all-variants-for-filters'],
-    () => variantsApi.getAllVariants(), // No params needed, will use defaults
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes (longer cache for filter options)
-    }
-  )
 
   // Fetch all variants from API with applied filters using findAllVariants
   const { data: variantsResponse = { items: [], count: 0 }, isLoading, error, refetch, isFetching } = useQuery(
     ['variants', { 
-      category: appliedCategory, 
+      category: appliedCategory,
+      brand: appliedBrand,
       branch: appliedBranch, 
       search: searchTerm,
       skip: (currentPage - 1) * itemsPerPage,
       limit: itemsPerPage
     }],
     async () => {
-      const response = await api.get("/variants", {
-        params: {
-          category: appliedCategory || undefined,
-          branch: appliedBranch || undefined,
-          search: searchTerm || undefined,
-          skip: (currentPage - 1) * itemsPerPage,
-          limit: itemsPerPage,
-          order: -1, // -1 for desc, 1 for asc
-          sort: 'updated_at'
-        }
-      });
+      const filters = {
+        category: appliedCategory || undefined,
+        brand: appliedBrand || undefined,
+        branch: appliedBranch || undefined,
+        search: searchTerm || undefined,
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        order: -1, // -1 for desc, 1 for asc
+        sort: 'updated_at'
+      };
+      
+      const response = await api.post("/variants/search", filters);
       // Backend returns { items: [...], count: number }
       return response.data;
     },
@@ -113,18 +107,9 @@ const Variants: React.FC = () => {
   const variants = variantsResponse.items || []
   const totalItems = variantsResponse.count || 0
 
-  // Get unique categories and branches from ALL variants (not filtered ones)
-  const categories = React.useMemo(() => {
-    const cats = [...new Set(allVariantsForFilters.map(p => p.category))].filter(Boolean)
-    return cats.sort()
-  }, [allVariantsForFilters])
-
-  const brands = React.useMemo(() => {
-    const brandList = [...new Set(allVariantsForFilters.map(p => p.brand))].filter(Boolean)
-    return brandList.sort()
-  }, [allVariantsForFilters])
-
-  // Use predefined branch options instead of getting from database
+  // Use predefined enum options for all filters (consistent across all pages)
+  const categories = CATEGORY_OPTIONS
+  const brands = BRAND_OPTIONS
   const branches = BRANCH_OPTIONS
 
   // All variants are fetched, no additional filtering needed
@@ -139,7 +124,7 @@ const Variants: React.FC = () => {
   // Reset to first page when filters change
   React.useEffect(() => {
     setCurrentPage(1)
-  }, [appliedCategory, appliedBranch, searchTerm])
+  }, [appliedCategory, appliedBrand, appliedBranch, searchTerm])
 
   // Handle pagination changes
   const handlePageChange = (page: number) => {

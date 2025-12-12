@@ -44,24 +44,14 @@ api.interceptors.response.use(
 
 // Variants API functions
 export const variantsApi = {
-  // Fetch all variants with optional query parameters
-  getAllVariants: async (params?: VariantsQueryParams): Promise<Variant[]> => {
-    const response = await api.get("/variants", {
-      params: {
-        ...params,
-        limit: params?.limit || 10000, // Default large limit if not specified
-      },
+  // Search all variants with filters in body
+  getAllVariants: async (filters?: VariantsQueryParams): Promise<Variant[]> => {
+    const response = await api.post("/variants/search", {
+      ...filters,
+      limit: filters?.limit || 10000, // Default large limit if not specified
     });
     // Backend returns OutputDto with { count, items }
     return response.data.items || response.data.data || response.data;
-  },
-
-  // Fetch aggregated variants with optional query parameters
-  getAggregatedVariants: async (
-    params?: VariantsQueryParams
-  ): Promise<Variant[]> => {
-    const response = await api.get("/variants/aggregated-variants", { params });
-    return response.data;
   },
 
   // Create a new variant
@@ -121,24 +111,26 @@ export const salesApi = {
     return response.data;
   },
 
-  // Fetch all sales with optional query parameters
-  getAllSales: async (params?: {
+  // Search sales with filters in body
+  getAllSales: async (filters?: {
+    search?: string;
     branch?: string;
-    startDate?: string;
-    endDate?: string;
+    brand?: string;
+    created_at?: string; // JSON stringified object
   }) => {
-    const response = await api.get("/sales", { params });
+    const response = await api.post("/sales/search", filters || {});
     // Return full response with both items and count
     return response.data;
   },
 
-  // Get sales statistics
-  getSalesStatistics: async (params?: {
+  // Get sales statistics with filters in body
+  getSalesStatistics: async (filters?: {
+    search?: string;
     branch?: string;
-    startDate?: string;
-    endDate?: string;
+    brand?: string;
+    created_at?: string; // JSON stringified object
   }) => {
-    const response = await api.get("/sales/stats", { params });
+    const response = await api.post("/sales/stats", filters || {});
     return response.data;
   },
 
@@ -151,9 +143,10 @@ export const salesApi = {
   // Export sales to Excel and send via email
   exportSales: async (exportData: {
     recipientEmail: string;
+    search?: string;
     branch?: string;
-    startDate?: string;
-    endDate?: string;
+    brand?: string;
+    created_at?: string; // JSON stringified object
   }) => {
     const response = await api.post("/sales/export", exportData);
     return response.data;
@@ -163,9 +156,9 @@ export const salesApi = {
 
 // Products API functions (Parent products)
 export const productsApi = {
-  // Fetch all products
-  getAllProducts: async (params?: ProductsQueryParams): Promise<Product[]> => {
-    const response = await api.get("/products", { params });
+  // Search all products with filters in body
+  getAllProducts: async (filters?: ProductsQueryParams): Promise<Product[]> => {
+    const response = await api.post("/products/search", filters || {});
     return response.data.items || response.data.data || response.data;
   },
 
