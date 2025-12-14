@@ -44,7 +44,7 @@ const VariantSchema = z.object({
   product_uid: z.string().min(1, 'Product selection is required'),
   product_name: z.string().min(1, 'Product name is required'),
   title: z.string().optional().transform(val => val === '' ? undefined : val), // CMS title (optional, backend generates if not provided)
-  description: z.string().min(3, 'Description must be at least 3 characters'),
+  description: z.string().optional().transform(val => val === '' ? undefined : val),
   sku: z.string().min(3, 'SKU is required'),
   category: z.string().min(1, 'Category is required'),
   brand: z.string().min(1, 'Brand is required'),
@@ -52,7 +52,7 @@ const VariantSchema = z.object({
   supplier: z.string().optional(),
   cost_price: z.number().min(1, 'Cost price must be at least 1'),
   selling_price: z.number().min(1, 'Selling price must be at least 1').optional().or(z.nan().transform(() => undefined)),
-  quantity: z.number().min(0, 'Quantity must be at least 0').optional().or(z.nan().transform(() => undefined)),
+  quantity: z.number().min(1, 'Quantity must be at least 1').default(1),
   warranty: z.number().min(1, 'Warranty must be at least 1').optional().or(z.nan().transform(() => undefined)),
   image: z.string().url('Image must be a valid URL').optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
   notes: z.string().optional(),
@@ -116,7 +116,7 @@ export const VariantForm: React.FC<VariantFormProps> = ({
       supplier: item?.supplier || '',
       cost_price: item?.cost_price || undefined,
       selling_price: item?.selling_price || undefined,
-      quantity: item?.quantity || 0,
+      quantity: item?.quantity || 1,
       warranty: item?.warranty || undefined,
       image: item?.image || '',
       notes: item?.notes || '',
@@ -184,7 +184,7 @@ export const VariantForm: React.FC<VariantFormProps> = ({
         supplier: '',
         cost_price: undefined,
         selling_price: undefined,
-        quantity: 0,
+        quantity: 1,
         warranty: undefined,
         image: '',
         notes: '',
@@ -525,10 +525,10 @@ export const VariantForm: React.FC<VariantFormProps> = ({
             <Input
               {...register('quantity', { 
                 valueAsNumber: true,
-                setValueAs: (value) => value === '' ? undefined : Number(value)
+                setValueAs: (value) => value === '' ? 1 : Number(value)
               })}
               type="number"
-              min="0"
+              min="1"
               label="Quantity"
               placeholder="e.g., 10"
               error={errors.quantity?.message}
@@ -693,10 +693,8 @@ export const VariantForm: React.FC<VariantFormProps> = ({
               >
                 <option value="">Select RAM</option>
                 <option value="4">4 GB</option>
-                <option value="5">5 GB</option>
                 <option value="6">6 GB</option>
                 <option value="8">8 GB</option>
-                <option value="10">10 GB</option>
                 <option value="12">12 GB</option>
                 <option value="16">16 GB</option>
               </select>

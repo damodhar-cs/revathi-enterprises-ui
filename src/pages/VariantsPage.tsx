@@ -9,6 +9,7 @@ import { Variant } from '../types'
 import api, { variantsApi } from '../services/api'
 import { MIN_STOCK_COUNT, DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/common/constants'
 import { BRANCH_OPTIONS, BRAND_OPTIONS, CATEGORY_OPTIONS } from '@/common/enums'
+import { capitalizeFirst } from '../utils/textUtils'
 
 const Variants: React.FC = () => {
   const navigate = useNavigate()
@@ -482,7 +483,7 @@ const Variants: React.FC = () => {
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by variant name..."
+                placeholder="Search by variant title..."
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -551,12 +552,18 @@ const Variants: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product & SKU</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RAM</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Storage</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Battery</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
@@ -571,11 +578,11 @@ const Variants: React.FC = () => {
                               </div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{item.product_name}</div>
-                              <div className="text-xs text-gray-500">{item.sku}</div>
+                              <div className="text-sm font-medium text-gray-900">{capitalizeFirst(item.title || item.product_name)}</div>
                             </div>
                           </div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sku}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.brand}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.branch}</td>
@@ -584,6 +591,21 @@ const Variants: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(item.quantity)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.attributes?.ram ? `${item.attributes.ram} GB` : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.attributes?.storage ? `${item.attributes.storage} GB` : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.attributes?.color || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.attributes?.battery_life ? `${item.attributes.battery_life}h` : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(item.createdAt || item.created_at || '').toLocaleDateString('en-IN')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-2">
@@ -599,7 +621,7 @@ const Variants: React.FC = () => {
                                 handleEditVariant(item);
                               }}
                               className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                              title="View All Variants"
+                              title="Edit Variant"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>

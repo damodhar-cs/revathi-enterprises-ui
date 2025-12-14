@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Users as UsersIcon, Edit2, Trash2, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw, UserPlus } from 'lucide-react'
+import { Plus, Search, Filter, Users as UsersIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw, UserPlus, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,16 +15,14 @@ import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
 
 // Form data interfaces
 interface CreateUserFormData {
-  firstName: string
-  lastName?: string
+  name: string
   email: string
   password: string
   confirmPassword: string
 }
 
 interface UpdateUserFormData {
-  firstName: string
-  lastName?: string
+  name: string
   email: string
   password?: string
   confirmPassword?: string
@@ -32,8 +30,7 @@ interface UpdateUserFormData {
 
 const createUserSchema = z
   .object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters'),
-    lastName: z.string().optional(),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
@@ -45,8 +42,7 @@ const createUserSchema = z
 
 const updateUserSchema = z
   .object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters'),
-    lastName: z.string().optional(),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().optional(),
     confirmPassword: z.string().optional(),
@@ -102,7 +98,7 @@ const Users: React.FC = () => {
   // Pagination and sorting state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE)
-  const [sortField, setSortField] = useState<'firstName' | 'email' | 'updatedAt'>('updatedAt')
+  const [sortField, setSortField] = useState<'name' | 'email' | 'createdAt'>('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const queryClient = useQueryClient()
@@ -167,14 +163,10 @@ const Users: React.FC = () => {
   }, [allUsersForFilters])
 
   const handleAddUser = () => {
-    setEditingItem(null)
-    setIsAddModalOpen(true)
+    // Firebase users are managed in Firebase Console
+    alert('New users must be created through Firebase Console. Please create users in Firebase Authentication.')
   }
 
-  const handleEditUser = (item: User) => {
-    setEditingItem(item)
-    setIsAddModalOpen(true)
-  }
 
   // Create user mutation
   const createUserMutation = useMutation(
@@ -189,7 +181,7 @@ const Users: React.FC = () => {
         setIsAddModalOpen(false)
         setMutationError('')
         // Reset sort to show newest first
-        setSortField('updatedAt')
+        setSortField('createdAt')
         setSortOrder('desc')
         refetch()
       },
@@ -215,7 +207,7 @@ const Users: React.FC = () => {
         setIsAddModalOpen(false)
         setMutationError('')
         // Reset sort to show newest first
-        setSortField('updatedAt')
+        setSortField('createdAt')
         setSortOrder('desc')
         refetch()
       },
@@ -262,18 +254,14 @@ const Users: React.FC = () => {
   }
   
   const onSubmitUpdate = async (data: UpdateUserFormData) => {
-    if (editingItem) {
+    if (editingItem && editingItem._id) {
       updateUserMutation.mutate({ id: editingItem._id, userData: data })
     }
   }
 
-  const handleDeleteUser = (item: User) => {
-    setItemToDelete(item)
-    setDeleteModalOpen(true)
-  }
 
   const confirmDeleteUser = async () => {
-    if (itemToDelete) {
+    if (itemToDelete && itemToDelete._id) {
       setMutationError('')
       deleteUserMutation.mutate(itemToDelete._id)
       setItemToDelete(null)
@@ -293,8 +281,7 @@ const Users: React.FC = () => {
   useEffect(() => {
     if (editingItem && isAddModalOpen) {
       resetUpdate({
-        firstName: editingItem.firstName,
-        lastName: editingItem.lastName || '',
+        name: editingItem.name,
         email: editingItem.email,
         password: '',
         confirmPassword: ''
@@ -332,7 +319,7 @@ const Users: React.FC = () => {
     }, 100)
   }
 
-  const handleSort = (field: 'firstName' | 'email' | 'updatedAt') => {
+  const handleSort = (field: 'name' | 'email' | 'createdAt') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -484,7 +471,7 @@ const Users: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users and their access</p>
+          <p className="text-gray-600">View Firebase Authentication users (Manage in Firebase Console)</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -499,7 +486,8 @@ const Users: React.FC = () => {
           <Button 
             onClick={handleAddUser} 
             className="inline-flex items-center"
-            disabled={createUserMutation.isLoading}
+            variant="secondary"
+            title="Users are managed in Firebase Console"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add User
@@ -585,20 +573,9 @@ const Users: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('firstName')}
-                      >
-                        <div className="flex items-center">
-                          First Name
-                          {sortField === 'firstName' && (
-                            <span className="ml-1">
-                              {sortOrder === 'asc' ? '↑' : '↓'}
-                            </span>
-                          )}
-                        </div>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User ID
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Name</th>
                       <th 
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSort('email')}
@@ -612,44 +589,40 @@ const Users: React.FC = () => {
                           )}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email Verified</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th 
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('updatedAt')}
+                        onClick={() => handleSort('createdAt')}
                       >
                         <div className="flex items-center">
-                          Updated At
-                          {sortField === 'updatedAt' && (
+                          Created At
+                          {sortField === 'createdAt' && (
                             <span className="ml-1">
                               {sortOrder === 'asc' ? '↑' : '↓'}
                             </span>
                           )}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated By</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Sign In</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {users.map((user) => (
-                      <tr key={user._id} className="hover:bg-gray-50">
+                      <tr key={user._id || user.uid} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">
+                          {user.uid || user._id}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {user.firstName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.lastName || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {user.email}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            user.role === 'admin' 
-                              ? 'bg-purple-100 text-purple-800' 
-                              : 'bg-gray-100 text-gray-800'
+                            (user as any).emailVerified
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {user.role}
+                            {(user as any).emailVerified ? 'Verified' : 'Not Verified'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -658,38 +631,23 @@ const Users: React.FC = () => {
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {user.isActive ? 'Active' : 'Inactive'}
+                            {user.isActive ? 'Active' : 'Disabled'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(user.updatedAt).toLocaleDateString()} {new Date(user.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(user.createdAt).toLocaleDateString()} {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.updatedBy || '-'}
+                          {(user as any).lastSignIn ? new Date((user as any).lastSignIn).toLocaleDateString() + ' ' + new Date((user as any).lastSignIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleEditUser(user)}
-                              className="text-primary-600 hover:text-primary-900 p-1 hover:bg-primary-50 rounded"
-                              title="Edit"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              className="text-gray-600 hover:text-gray-900 p-1 hover:bg-gray-50 rounded"
-                              title="View Details"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(user)}
-                              className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => setItemToDelete(user)}
+                            className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -753,23 +711,14 @@ const Users: React.FC = () => {
         </div>
 
         <form onSubmit={editingItem ? handleSubmitUpdate(onSubmitUpdate) : handleSubmitCreate(onSubmitCreate)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
             <Input
-              {...(editingItem ? registerUpdate('firstName') : registerCreate('firstName'))}
+              {...(editingItem ? registerUpdate('name') : registerCreate('name'))}
               type="text"
-              label="First Name"
-              placeholder="Enter first name"
-              error={editingItem ? errorsUpdate.firstName?.message : errorsCreate.firstName?.message}
+              label="Full Name"
+              placeholder="Enter full name"
+              error={editingItem ? errorsUpdate.name?.message : errorsCreate.name?.message}
               isRequired
-              noMargin
-            />
-            <Input
-              {...(editingItem ? registerUpdate('lastName') : registerCreate('lastName'))}
-              type="text"
-              label="Last Name"
-              placeholder="Enter last name"
-              error={editingItem ? errorsUpdate.lastName?.message : errorsCreate.lastName?.message}
-              isRequired={false}
               noMargin
             />
           </div>
@@ -842,7 +791,7 @@ const Users: React.FC = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDeleteUser}
         title="Delete User"
-        itemName={`${itemToDelete?.firstName} ${itemToDelete?.lastName || ''}`.trim()}
+        itemName={itemToDelete?.name}
         description="Are you sure you want to delete this user? This action cannot be undone and will permanently remove the user's access to the system."
       />
     </div>

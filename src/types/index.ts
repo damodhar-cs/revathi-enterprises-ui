@@ -1,13 +1,13 @@
 // User types
 export interface User {
-  _id: string;
-  firstName: string;
-  lastName: string;
+  _id?: string; // MongoDB ID (optional for Firebase users)
+  uid?: string; // Firebase UID (optional for MongoDB users)
+  name: string; // Changed from firstName/lastName to single name field
   email: string;
   role: string;
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   createdBy: string;
   updatedBy: string;
 }
@@ -19,10 +19,9 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  firstName: string;
+  name: string; // Changed from firstName/lastName to single name
   email: string;
   password: string;
-  lastName?: string;
 }
 
 export interface AuthResponse {
@@ -37,11 +36,10 @@ export interface LoginFormData {
 }
 
 export interface RegisterFormData {
-  firstName: string;
+  name: string;
   email: string;
   password: string;
   confirmPassword: string;
-  lastName?: string;
 }
 
 export interface CreateUserFormData {

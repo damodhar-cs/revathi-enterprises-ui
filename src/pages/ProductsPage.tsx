@@ -9,6 +9,7 @@ import { productsApi } from '../services/api'
 import ProductForm from '../components/ProductForm'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
 import { BRAND_OPTIONS, CATEGORY_OPTIONS } from '../common/enums'
+import { capitalizeFirst } from '../utils/textUtils'
 
 const Products: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -396,7 +397,7 @@ const Products: React.FC = () => {
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by product name..."
+                placeholder="Search by product title..."
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -463,7 +464,7 @@ const Products: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Title</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
@@ -481,7 +482,7 @@ const Products: React.FC = () => {
                               </div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                              <div className="text-sm font-medium text-gray-900">{capitalizeFirst(item.title)}</div>
                             </div>
                           </div>
                         </td>

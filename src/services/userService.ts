@@ -18,7 +18,7 @@ export const userService = {
     status?: string;
     page?: number;
     limit?: number;
-    sortField?: "firstName" | "email" | "updatedAt";
+    sortField?: "name" | "email" | "createdAt";
     sortOrder?: "asc" | "desc";
   }): Promise<{
     data: User[];
@@ -38,7 +38,18 @@ export const userService = {
     if (params.sortOrder) searchParams.append("sortOrder", params.sortOrder);
 
     const response = await api.get(`/users/search?${searchParams.toString()}`);
-    return response.data;
+    
+    // Firebase backend returns {items: [], count: ...}
+    // Frontend expects {data: [], total: ...}
+    const backendData = response.data;
+    
+    return {
+      data: backendData.items || [],
+      total: backendData.count || 0,
+      page: params.page || 1,
+      limit: params.limit || 10,
+      totalPages: Math.ceil((backendData.count || 0) / (params.limit || 10)),
+    };
   },
 
   async getUserById(id: string): Promise<User> {
@@ -56,7 +67,7 @@ export const userService = {
     return response.data;
   },
 
-  async deleteUser(id: string): Promise<void> {
-    await api.delete(`/users/${id}`);
+  async deleteUser(uid: string): Promise<void> {
+    await api.delete(`/users/${uid}`);
   },
 };

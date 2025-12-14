@@ -16,13 +16,20 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+/**
+ * Request interceptor to add Firebase auth token
+ * Attaches the Firebase ID token to all API requests
+ */
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("auth_token");
+    // Get Firebase token from localStorage
+    const token = localStorage.getItem("firebase_token");
+    
     if (token) {
+      // Add Bearer token to Authorization header
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => {
@@ -30,14 +37,24 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
+/**
+ * Response interceptor to handle errors
+ * Redirects to login on 401 Unauthorized
+ */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle unauthorized errors
     if (error.response?.status === 401) {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+      // Token expired or invalid - clear and redirect to login
+      localStorage.removeItem("firebase_token");
+      
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = "/login";
+      }
     }
+    
     return Promise.reject(error);
   }
 );

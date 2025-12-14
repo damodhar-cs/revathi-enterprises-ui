@@ -7,6 +7,7 @@ import FilterPanel from '../components/FilterPanel'
 import { salesApi } from '../services/api'
 import { BRANCH_OPTIONS, BRAND_OPTIONS } from '../common/enums'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
+import { capitalizeFirst } from '../utils/textUtils'
 
 // Sale interface - CMS schema only
 interface Sale {
@@ -587,7 +588,7 @@ const SalesPage: React.FC = () => {
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
-                                {sale.title || sale.product_name || `Sale #${sale.uid.slice(-8)}`}
+                                {capitalizeFirst(sale.title || sale.product_name) || `Sale #${sale.uid.slice(-8)}`}
                               </div>
                               <div className="text-sm text-gray-500">
                                 {sale.sku ? `${sale.sku} • ` : ''}{sale.brand || sale.variant_uid}
@@ -601,10 +602,10 @@ const SalesPage: React.FC = () => {
                               <User className="w-4 h-4 text-gray-500" />
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{sale.customer.name}</div>
+                              <div className="text-sm font-medium text-gray-900">{sale.customer?.name || 'N/A'}</div>
                               <div className="text-sm text-gray-500 flex items-center">
                                 <Phone className="w-3 h-3 mr-1" />
-                                {sale.customer.phone}
+                                {sale.customer?.phone || 'N/A'}
                               </div>
                             </div>
                           </div>

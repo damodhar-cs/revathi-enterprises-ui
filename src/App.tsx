@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -33,7 +33,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Dashboard />} />
+              <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="products" element={<ProductsPage />} />
               <Route path="variants" element={<VariantsPage />} />

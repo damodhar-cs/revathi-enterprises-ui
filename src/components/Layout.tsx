@@ -40,12 +40,11 @@ const Layout: React.FC = () => {
     setIsProfileDropdownOpen(false)
   }
 
-  // Get user initials
+  // Get user initials from email
   const getUserInitials = () => {
-    if (!user?.firstName) return 'U'
-    const firstInitial = user.firstName[0]
-    const lastInitial = user.lastName?.[0] || ''
-    return (firstInitial + lastInitial).toUpperCase()
+    if (!user?.email) return 'U'
+    const emailPrefix = user.email.split('@')[0]
+    return emailPrefix[0].toUpperCase()
   }
 
   // Logo component with fallback strategy
@@ -86,7 +85,6 @@ const Layout: React.FC = () => {
                   <h1 className="text-lg font-bold text-gray-900 tracking-tight">
                     Revathi Enterprises
                   </h1>
-                  <p className="text-xs text-gray-500 leading-none">Variant CRM</p>
                 </div>
               </div>
 

@@ -33,13 +33,18 @@ const Login: React.FC = () => {
     
     try {
       await login(data.email, data.password)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed')
+      setError(err.message || 'Login failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
+
+
+  // Check for session expired message
+  const searchParams = new URLSearchParams(window.location.search)
+  const sessionMessage = searchParams.get('message')
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -49,8 +54,16 @@ const Login: React.FC = () => {
             Welcome to Revathi Enterprises
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to your administrator account
+            Sign in to your account
           </p>
+          
+          {sessionMessage === 'session_expired' && (
+            <div className="mt-4 rounded-md bg-yellow-50 p-4">
+              <p className="text-sm text-yellow-800">
+                Your session has expired. Please login again.
+              </p>
+            </div>
+          )}
         </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -74,8 +87,13 @@ const Login: React.FC = () => {
             />
           </div>
 
+
           {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+            <div className="rounded-md bg-red-50 p-4">
+              <div className="text-sm text-red-800">
+                {error}
+              </div>
+            </div>
           )}
 
           <div>
@@ -88,16 +106,16 @@ const Login: React.FC = () => {
               Sign In
             </Button>
           </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              For testing, use: <strong>reddivaridamu25091999@gmail.com</strong> / <strong>121212</strong>
-            </p>
-          </div>
         </form>
+        
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Forgot your password? Reset it from your profile after logging in.
+          </p>
+        </div>
       </div>
     </div>
   )
 }
 
-export default Login 
+export default Login
