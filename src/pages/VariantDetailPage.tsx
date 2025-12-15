@@ -38,7 +38,7 @@ const VariantDetailPage: React.FC = () => {
       const cleanedData: any = {
         product_name: dataWithoutId.product_name,
         description: dataWithoutId.description,
-        sku: dataWithoutId.sku,
+        imei: dataWithoutId.imei,
         category: dataWithoutId.category,
         brand: dataWithoutId.brand,
         supplier: dataWithoutId.supplier,
@@ -78,9 +78,8 @@ const VariantDetailPage: React.FC = () => {
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(['variant', variantId]);
-        queryClient.invalidateQueries('variants');
-        queryClient.invalidateQueries('product-variants');
+        // No need to invalidate variant queries since we're navigating away
+        // The variant will be refreshed when/if user navigates back to this page
         queryClient.invalidateQueries('sales'); // Invalidate sales queries to refresh data
         setIsSellModalOpen(false);
         setSellError('');
@@ -178,7 +177,7 @@ const VariantDetailPage: React.FC = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{variant.product_name}</h1>
-                <p className="text-sm text-gray-500">SKU: {variant.sku}</p>
+                <p className="text-sm text-gray-500">SKU: {variant.imei}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">

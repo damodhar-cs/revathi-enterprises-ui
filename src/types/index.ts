@@ -126,9 +126,9 @@ export interface Variant {
   uid?: string; // Contentstack UID
   product_uid: string; // Reference to parent product UID
   product_name: string; // Denormalized product name
-  title: string; // CMS title (random uid for CMS integration)
-  description: string;
-  sku: string;
+  title?: string; // CMS title (optional, random uid for CMS integration)
+  description?: string; // Optional
+  imei?: string; // Optional IMEI/Variant Code
   category: string;
   brand: string;
   branch: string;

@@ -48,3 +48,21 @@ export const MATERIAL_OPTIONS = [
   "Ceramic",
   "Silicone",
 ] as const;
+
+// Payment method options (matches backend PAYMENT_METHOD_ENUM)
+export const PAYMENT_METHOD_OPTIONS = [
+  "Cash",
+  "Card",
+  "UPI",
+  "Bank Transfer",
+  "Credit Card",
+  "Finance",
+] as const;
+
+// Finance provider options (matches backend FINANCE_PROVIDER_ENUM)
+export const FINANCE_PROVIDER_OPTIONS = [
+  "Bajaj Finserv",
+  "TVS Credit",
+  "IDFC",
+  "Home Credit",
+] as const;

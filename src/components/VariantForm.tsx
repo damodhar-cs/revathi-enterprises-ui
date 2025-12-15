@@ -45,13 +45,12 @@ const VariantSchema = z.object({
   product_name: z.string().min(1, 'Product name is required'),
   title: z.string().optional().transform(val => val === '' ? undefined : val), // CMS title (optional, backend generates if not provided)
   description: z.string().optional().transform(val => val === '' ? undefined : val),
-  sku: z.string().min(3, 'SKU is required'),
+  imei: z.string().optional().transform(val => val === '' ? undefined : val), // Optional IMEI/Variant Code
   category: z.string().min(1, 'Category is required'),
   brand: z.string().min(1, 'Brand is required'),
   branch: z.string().min(1, 'Branch is required'),
   supplier: z.string().optional(),
   cost_price: z.number().min(1, 'Cost price must be at least 1'),
-  selling_price: z.number().min(1, 'Selling price must be at least 1').optional().or(z.nan().transform(() => undefined)),
   quantity: z.number().min(1, 'Quantity must be at least 1').default(1),
   warranty: z.number().min(1, 'Warranty must be at least 1').optional().or(z.nan().transform(() => undefined)),
   image: z.string().url('Image must be a valid URL').optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
@@ -109,13 +108,12 @@ export const VariantForm: React.FC<VariantFormProps> = ({
       product_name: item?.product_name || '',
       title: item?.title || '',
       description: item?.description || '',
-      sku: item?.sku || '',
+      imei: item?.imei || '',
       category: item?.category || '',
       brand: item?.brand || '',
       branch: item?.branch || 'Mahadevapura',
       supplier: item?.supplier || '',
       cost_price: item?.cost_price || undefined,
-      selling_price: item?.selling_price || undefined,
       quantity: item?.quantity || 1,
       warranty: item?.warranty || undefined,
       image: item?.image || '',
@@ -151,13 +149,12 @@ export const VariantForm: React.FC<VariantFormProps> = ({
         product_name: item.product_name,
         title: item.title || '',
         description: item.description,
-        sku: item.sku,
+        imei: item.imei,
         category: item.category,
         brand: item.brand,
         branch: item.branch,
         supplier: item.supplier,
         cost_price: item.cost_price,
-        selling_price: item.selling_price,
         quantity: item.quantity,
         warranty: item.warranty,
         image: item.image,
@@ -177,13 +174,12 @@ export const VariantForm: React.FC<VariantFormProps> = ({
         product_name: '',
         title: '',
         description: '',
-        sku: '',
+        imei: '',
         category: '',
         brand: '',
         branch: '',
         supplier: '',
         cost_price: undefined,
-        selling_price: undefined,
         quantity: 1,
         warranty: undefined,
         image: '',
@@ -390,11 +386,10 @@ export const VariantForm: React.FC<VariantFormProps> = ({
               )}
             </div>
             <Input
-              {...register('sku')}
-              label="SKU/Variant Code"
+              {...register('imei')}
+              label="IMEI/Variant Code"
               placeholder="e.g., 1234abcd"
-              error={errors.sku?.message}
-              isRequired
+              error={errors.imei?.message}
             />
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -510,17 +505,6 @@ export const VariantForm: React.FC<VariantFormProps> = ({
               placeholder="e.g., 55000"
               error={errors.cost_price?.message}
               isRequired
-            />
-            <Input
-              {...register('selling_price', { 
-                valueAsNumber: true,
-                setValueAs: (value) => value === '' ? undefined : Number(value)
-              })}
-              type="number"
-              min="1"
-              label="Selling Price (₹)"
-              placeholder="e.g., 60000"
-              error={errors.selling_price?.message}
             />
             <Input
               {...register('quantity', { 

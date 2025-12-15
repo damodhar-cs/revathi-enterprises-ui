@@ -28,7 +28,7 @@ interface CustomerDetail {
 interface Sale {
   _id: string
   productName: string
-  sku: string
+  imei: string
   brand: string
   category: string
   sellingPrice: number
@@ -232,7 +232,7 @@ const CustomerDetailPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.sku}
+                        {sale.imei}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                         {formatCurrency(sale.sellingPrice)}
@@ -271,7 +271,7 @@ const CustomerDetailPage: React.FC = () => {
                     <div className="flex-1 min-w-0 mr-2">
                       <p className="text-sm font-medium text-gray-900 truncate">{sale.productName}</p>
                       <p className="text-xs text-gray-500 mt-1">{sale.brand} • {sale.category}</p>
-                      <p className="text-xs text-gray-500 mt-1">SKU: {sale.sku}</p>
+                      <p className="text-xs text-gray-500 mt-1">SKU: {sale.imei}</p>
                     </div>
                     <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded flex-shrink-0">
                       {sale.branch}

@@ -136,7 +136,7 @@ const ProductVariantsPage: React.FC = () => {
         product_uid: dataWithoutId.product_uid || product_uid, // Use current product_uid if not provided
         product_name: dataWithoutId.product_name,
         description: dataWithoutId.description,
-        sku: dataWithoutId.sku,
+        imei: dataWithoutId.imei,
         category: dataWithoutId.category,
         brand: dataWithoutId.brand,
         branch: dataWithoutId.branch,
@@ -193,7 +193,7 @@ const ProductVariantsPage: React.FC = () => {
         product_uid: dataWithoutId.product_uid || product_uid,
         product_name: dataWithoutId.product_name,
         description: dataWithoutId.description,
-        sku: dataWithoutId.sku,
+        imei: dataWithoutId.imei,
         category: dataWithoutId.category,
         brand: dataWithoutId.brand,
         branch: dataWithoutId.branch,
@@ -528,7 +528,7 @@ const ProductVariantsPage: React.FC = () => {
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IMEI/Variant Code</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost Price (₹)</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
@@ -548,7 +548,7 @@ const ProductVariantsPage: React.FC = () => {
                     {paginatedItems.map((item) => (
                       <tr key={item._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/variant/${item._id}`)}>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.branch}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.sku}</td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.imei}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.brand}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.cost_price}</td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{item.quantity}</td>
@@ -649,7 +649,7 @@ const ProductVariantsPage: React.FC = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDeleteVariant}
         title="Delete Variant"
-        itemName={`${itemToDelete?.sku || itemToDelete?.description} (Quantity: ${itemToDelete?.quantity || 0})`}
+        itemName={`${itemToDelete?.imei || itemToDelete?.description} (Quantity: ${itemToDelete?.quantity || 0})`}
         description="Are you sure you want to delete this variant? This action cannot be undone and will permanently remove the variant from your inventory."
       />
     </div>

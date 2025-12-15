@@ -215,10 +215,10 @@ const SaleDetailPage: React.FC = () => {
                     <dt className="text-sm font-medium text-gray-500">Product Name</dt>
                     <dd className="mt-1 text-sm text-gray-900">{(sale as any).title || (sale as any).product_name || 'N/A'}</dd>
                   </div>
-                  {(sale as any).sku && (
+                  {(sale as any).imei && (
                     <div>
                       <dt className="text-sm font-medium text-gray-500">SKU</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{(sale as any).sku}</dd>
+                      <dd className="mt-1 text-sm text-gray-900">{(sale as any).imei}</dd>
                     </div>
                   )}
                   {(sale as any).category && (

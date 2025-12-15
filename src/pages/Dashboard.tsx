@@ -56,7 +56,7 @@ interface TopProduct {
 interface RecentSale {
   _id: string
   product_name: string
-  sku: string
+  imei: string
   brand: string
   customer: {
     name: string

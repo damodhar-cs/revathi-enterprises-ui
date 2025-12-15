@@ -15,7 +15,7 @@ interface Sale {
   variant_uid: string;
   product_name?: string;
   title?: string;
-  sku?: string;
+  imei: string; // Required IMEI/Variant Code
   category?: string;
   brand?: string;
   branch?: string;
@@ -32,6 +32,8 @@ interface Sale {
     pincode?: string;
   };
   payment_method?: string;
+  finance_provider?: string; // Finance provider (if payment_method is Finance)
+  emi_duration?: number; // EMI duration in months (if payment_method is Finance)
   receipt_number?: string;
   notes?: string;
   color?: string;
@@ -151,13 +153,13 @@ const SalesPage: React.FC = () => {
   const filteredItems = sortedSales.filter((sale: Sale) => {
     const searchLower = searchTerm.toLowerCase();
     const title = (sale.title || sale.product_name || '').toLowerCase();
-    const sku = (sale.sku || '').toLowerCase();
+    const imei = (sale.imei || '').toLowerCase();
     const brand = (sale.brand || '').toLowerCase();
     const customerName = (sale.customer?.name || '').toLowerCase();
     const customerPhone = sale.customer?.phone || '';
     
     return title.includes(searchLower) ||
-           sku.includes(searchLower) ||
+           imei.includes(searchLower) ||
            brand.includes(searchLower) ||
            customerName.includes(searchLower) ||
            customerPhone.includes(searchTerm);
@@ -591,7 +593,7 @@ const SalesPage: React.FC = () => {
                                 {capitalizeFirst(sale.title || sale.product_name) || `Sale #${sale.uid.slice(-8)}`}
                               </div>
                               <div className="text-sm text-gray-500">
-                                {sale.sku ? `${sale.sku} • ` : ''}{sale.brand || sale.variant_uid}
+                                {sale.imei ? `${sale.imei} • ` : ''}{sale.brand || sale.variant_uid}
                               </div>
                             </div>
                           </div>

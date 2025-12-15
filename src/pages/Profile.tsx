@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Button } from '../components/Button'
-import { User, Mail, Calendar, Shield, Key, Copy, Check } from 'lucide-react'
+import { User, Mail, Calendar, Shield, Key, CheckCircle } from 'lucide-react'
 import { authService } from '../services/authService'
 
 const Profile: React.FC = () => {
@@ -9,11 +9,9 @@ const Profile: React.FC = () => {
   
   // Password reset states
   const [showResetModal, setShowResetModal] = useState(false)
-  const [resetMessage, setResetMessage] = useState('')
+  const [resetSuccess, setResetSuccess] = useState(false)
   const [resetError, setResetError] = useState('')
-  const [resetLink, setResetLink] = useState('')
   const [isResetting, setIsResetting] = useState(false)
-  const [copied, setCopied] = useState(false)
 
   // Get user initials for avatar
   const getUserInitials = () => {
@@ -31,49 +29,30 @@ const Profile: React.FC = () => {
 
     setIsResetting(true)
     setResetError('')
-    setResetMessage('')
-    setResetLink('')
+    setResetSuccess(false)
 
     try {
-      // Backend gets email from JWT token automatically
-      const response = await authService.resetPassword()
-      setResetMessage(response.message || 'Password reset link generated successfully')
-      setResetLink(response.resetLink || '')
+      // Backend gets email from JWT token automatically and sends email via Contentstack
+      await authService.resetPassword()
+      setResetSuccess(true)
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to generate password reset link. Please try again.'
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to send password reset email. Please try again.'
       setResetError(errorMessage)
     } finally {
       setIsResetting(false)
     }
   }
 
-  // Copy reset link to clipboard
-  const handleCopyLink = async () => {
-    if (resetLink) {
-      try {
-        await navigator.clipboard.writeText(resetLink)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      } catch (err) {
-        console.error('Failed to copy:', err)
-      }
-    }
-  }
-
   const openResetModal = () => {
     setShowResetModal(true)
-    setResetMessage('')
+    setResetSuccess(false)
     setResetError('')
-    setResetLink('')
-    setCopied(false)
   }
 
   const closeResetModal = () => {
     setShowResetModal(false)
-    setResetMessage('')
+    setResetSuccess(false)
     setResetError('')
-    setResetLink('')
-    setCopied(false)
   }
 
   return (
@@ -217,93 +196,85 @@ const Profile: React.FC = () => {
               />
 
               {/* Modal panel */}
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
                 {/* Header */}
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">Reset Password</h3>
-                    <button
-                      onClick={closeResetModal}
-                      className="text-gray-400 hover:text-gray-500 text-2xl leading-none"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <p className="text-sm text-gray-500 mb-4">
-                    A password reset link will be generated for: <strong>{user?.email}</strong>
-                  </p>
-
-                  {/* Success message with reset link */}
-                  {resetMessage && resetLink && (
-                    <div className="rounded-md bg-green-50 p-4 mb-4">
-                      <p className="text-sm text-green-800 mb-3 font-medium">{resetMessage}</p>
-                      <div className="mt-3">
-                        <label className="block text-xs font-medium text-green-900 mb-2">
-                          Password Reset Link:
-                        </label>
-                        <div className="flex items-start space-x-2">
-                          <textarea
-                            value={resetLink}
-                            readOnly
-                            rows={3}
-                            className="flex-1 px-3 py-2 text-xs border border-green-300 rounded-md bg-white text-gray-700 font-mono resize-none"
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleCopyLink}
-                            className="inline-flex items-center flex-shrink-0"
-                          >
-                            {copied ? (
-                              <>
-                                <Check className="w-4 h-4 mr-1" />
-                                Copied!
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-4 h-4 mr-1" />
-                                Copy
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-green-700 mt-2">
-                          📋 Copy this link and paste it in your browser to reset your password.
-                        </p>
+                  {/* Success State */}
+                  {resetSuccess ? (
+                    <div className="text-center py-4">
+                      <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                        <CheckCircle className="h-10 w-10 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Email Sent Successfully!
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-2">
+                        A password reset link has been sent to:
+                      </p>
+                      <p className="text-sm font-semibold text-primary-600 mb-4">
+                        {user?.email}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Please check your email inbox (and spam folder) for the reset link.
+                        <br />
+                        The link will expire in 1 hour.
+                      </p>
+                      <div className="mt-6">
+                        <Button
+                          type="button"
+                          onClick={closeResetModal}
+                          className="w-full"
+                        >
+                          Got it, Close
+                        </Button>
                       </div>
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      {/* Initial/Error State */}
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">Reset Password</h3>
+                        <button
+                          onClick={closeResetModal}
+                          className="text-gray-400 hover:text-gray-500 text-2xl leading-none"
+                        >
+                          ✕
+                        </button>
+                      </div>
 
-                  {/* Error message */}
-                  {resetError && (
-                    <div className="rounded-md bg-red-50 p-4 mb-4">
-                      <p className="text-sm text-red-800">{resetError}</p>
-                    </div>
-                  )}
+                      <p className="text-sm text-gray-500 mb-4">
+                        A password reset email will be sent to: <strong>{user?.email}</strong>
+                      </p>
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-end space-x-3 mt-6">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={closeResetModal}
-                      disabled={isResetting}
-                    >
-                      {resetLink ? 'Close' : 'Cancel'}
-                    </Button>
-                    {!resetLink && (
-                      <Button
-                        type="button"
-                        onClick={handleResetPassword}
-                        loading={isResetting}
-                        disabled={isResetting}
-                      >
-                        <Key className="w-4 h-4 mr-2" />
-                        Generate Reset Link
-                      </Button>
-                    )}
-                  </div>
+                      {/* Error message */}
+                      {resetError && (
+                        <div className="rounded-md bg-red-50 p-4 mb-4">
+                          <p className="text-sm text-red-800">{resetError}</p>
+                        </div>
+                      )}
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-end space-x-3 mt-6">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={closeResetModal}
+                          disabled={isResetting}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={handleResetPassword}
+                          loading={isResetting}
+                          disabled={isResetting}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Reset Email
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

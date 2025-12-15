@@ -174,7 +174,7 @@ const Variants: React.FC = () => {
         product_name: dataWithoutId.product_name,
         product_uid: dataWithoutId.product_uid,
         description: dataWithoutId.description,
-        sku: dataWithoutId.sku,
+        imei: dataWithoutId.imei,
         category: dataWithoutId.category,
         brand: dataWithoutId.brand,
         branch: dataWithoutId.branch,
@@ -237,7 +237,7 @@ const Variants: React.FC = () => {
         product_name: dataWithoutId.product_name,
         product_uid: dataWithoutId.product_uid,
         description: dataWithoutId.description,
-        sku: dataWithoutId.sku,
+        imei: dataWithoutId.imei,
         category: dataWithoutId.category,
         brand: dataWithoutId.brand,
         branch: dataWithoutId.branch,
@@ -553,7 +553,7 @@ const Variants: React.FC = () => {
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IMEI/Variant Code</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
@@ -582,7 +582,7 @@ const Variants: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sku}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.imei}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.brand}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.branch}</td>

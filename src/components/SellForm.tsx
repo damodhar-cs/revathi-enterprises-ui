@@ -6,6 +6,7 @@ import { Button } from './Button'
 import { Input } from './Input'
 import { Modal } from './Modal'
 import { Variant } from '../types/index'
+import { PAYMENT_METHOD_OPTIONS, FINANCE_PROVIDER_OPTIONS } from '../common/enums'
 import { ShoppingCart, DollarSign, User, Phone, Mail, MapPin } from 'lucide-react'
 
 interface SellFormProps {
@@ -35,11 +36,23 @@ const customerSchema = z.object({
 
 // Schema uses internal form field names
 const SellSchema = z.object({
-  sellingPrice: z.number().min(1, 'Selling price must be at least ₹1'),
+  imei: z.string().min(1, 'IMEI/Variant Code is required'),
+  sellingPrice: z.number().positive('Selling price must be a positive number').min(1, 'Selling price must be at least ₹1'),
   customer: customerSchema,
   paymentMethod: z.string().min(1, 'Payment method is required'),
+  financeProvider: z.string().optional(),
+  emiDuration: z.number().positive('EMI duration must be a positive number').int('EMI duration must be a whole number').optional(),
   color: z.string().optional(),
   notes: z.string().optional(),
+}).refine((data) => {
+  // If payment method is Finance, finance provider and EMI duration are required
+  if (data.paymentMethod === 'Finance') {
+    return !!data.financeProvider && !!data.emiDuration && data.emiDuration > 0
+  }
+  return true
+}, {
+  message: 'Finance provider and EMI duration are required when payment method is Finance',
+  path: ['financeProvider'],
 })
 
 export const SellForm: React.FC<SellFormProps> = ({
@@ -59,6 +72,7 @@ export const SellForm: React.FC<SellFormProps> = ({
   } = useForm<z.infer<typeof SellSchema>>({
     resolver: zodResolver(SellSchema),
     defaultValues: {
+      imei: variant?.imei || '',
       sellingPrice: variant?.cost_price || 0,
       customer: {
         name: '',
@@ -70,6 +84,8 @@ export const SellForm: React.FC<SellFormProps> = ({
         pincode: '',
       },
       paymentMethod: '',
+      financeProvider: '',
+      emiDuration: undefined,
       color: variant?.attributes?.color || '',
       notes: '',
     },
@@ -80,8 +96,9 @@ export const SellForm: React.FC<SellFormProps> = ({
   const profitMargin = variant ? sellingPrice - variant.cost_price : 0
   const profitPercentage = variant && variant.cost_price > 0 ? (profitMargin / variant.cost_price) * 100 : 0
 
-  // Match backend PAYMENT_METHOD_ENUM
-  const paymentMethods = ['Cash', 'Card', 'UPI', 'Bank Transfer', 'Credit Card']
+  // Watch payment method to show/hide finance fields
+  const paymentMethod = watch('paymentMethod')
+  const isFinanceSelected = paymentMethod === 'Finance'
 
   const onSubmit = (data: z.infer<typeof SellSchema>) => {
     if (!variant) return
@@ -89,6 +106,7 @@ export const SellForm: React.FC<SellFormProps> = ({
     // Transform to backend format (snake_case)
     const saleData = {
       variant_uid: variant.uid || variant._id || '',
+      imei: data.imei,
       selling_price: data.sellingPrice,
       customer: {
         name: data.customer.name,
@@ -100,6 +118,8 @@ export const SellForm: React.FC<SellFormProps> = ({
         pincode: data.customer.pincode || undefined,
       },
       payment_method: data.paymentMethod,
+      finance_provider: data.financeProvider || undefined,
+      emi_duration: data.emiDuration || undefined,
       color: data.color || undefined,
       notes: data.notes || undefined,
     }
@@ -125,7 +145,7 @@ export const SellForm: React.FC<SellFormProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Sell Product</h2>
-              <p className="text-sm text-gray-500">{variant.product_name} - {variant.sku}</p>
+              <p className="text-sm text-gray-500">{variant.product_name} - {variant.imei}</p>
             </div>
           </div>
 
@@ -145,6 +165,28 @@ export const SellForm: React.FC<SellFormProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {/* IMEI/Variant Code */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                IMEI/Variant Code <span className="text-red-500">*</span>
+              </label>
+              <Input
+                {...register('imei')}
+                placeholder={variant?.imei ? '' : "Enter IMEI/Variant Code"}
+                defaultValue={variant?.imei || ''}
+                readOnly={!!variant?.imei}
+                className={variant?.imei ? 'bg-gray-100 cursor-not-allowed' : ''}
+              />
+              {errors.imei && (
+                <p className="mt-1 text-sm text-red-600">{errors.imei.message}</p>
+              )}
+              {variant?.imei && (
+                <p className="mt-1 text-xs text-green-600 font-medium">✓ Auto-filled from variant (cannot be edited)</p>
+              )}
+            </div>
+          </div>
+
           {/* Product Info & Pricing */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-base font-semibold text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-3 flex items-center">
@@ -166,9 +208,14 @@ export const SellForm: React.FC<SellFormProps> = ({
                   {...register('sellingPrice', { valueAsNumber: true })}
                   type="number"
                   step="0.01"
-                  min="0"
+                  min="1"
                   placeholder="Enter selling price"
                   className="font-semibold"
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === 'e') {
+                      e.preventDefault()
+                    }
+                  }}
                 />
                 {errors.sellingPrice && (
                   <p className="mt-1 text-sm text-red-600">{errors.sellingPrice.message}</p>
@@ -333,7 +380,7 @@ export const SellForm: React.FC<SellFormProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white appearance-none bg-[url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3e%3c/svg%3e')] bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-no-repeat pr-10"
                 >
                   <option value="">Select payment method</option>
-                  {paymentMethods.map(method => (
+                  {PAYMENT_METHOD_OPTIONS.map(method => (
                     <option key={method} value={method}>{method}</option>
                   ))}
                 </select>
@@ -341,12 +388,57 @@ export const SellForm: React.FC<SellFormProps> = ({
                   <p className="mt-1 text-sm text-red-600">{errors.paymentMethod.message}</p>
                 )}
               </div>
+
+              {/* Finance fields - shown only when Finance is selected */}
+              {isFinanceSelected && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Finance Provider <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      {...register('financeProvider')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white appearance-none bg-[url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3e%3c/svg%3e')] bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-no-repeat pr-10"
+                    >
+                      <option value="">Select finance provider</option>
+                      {FINANCE_PROVIDER_OPTIONS.map(provider => (
+                        <option key={provider} value={provider}>{provider}</option>
+                      ))}
+                    </select>
+                    {errors.financeProvider && (
+                      <p className="mt-1 text-sm text-red-600">{errors.financeProvider.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      EMI Duration (months) <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      {...register('emiDuration', { valueAsNumber: true })}
+                      type="number"
+                      step="1"
+                      min="1"
+                      placeholder="Enter number of months"
+                      onKeyDown={(e) => {
+                        if (e.key === '-' || e.key === 'e' || e.key === '.') {
+                          e.preventDefault()
+                        }
+                      }}
+                    />
+                    {errors.emiDuration && (
+                      <p className="mt-1 text-sm text-red-600">{errors.emiDuration.message}</p>
+                    )}
+                  </div>
+                </>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Color (from variant)</label>
                 <Input
                   {...register('color')}
-                  placeholder="Color (optional)"
+                  placeholder={variant?.attributes?.color ? '' : "N/A"}
                   defaultValue={variant?.attributes?.color || ''}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
                 />
               </div>
               <div>
