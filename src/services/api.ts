@@ -26,8 +26,11 @@ api.interceptors.request.use(
     const token = localStorage.getItem("firebase_token");
     
     if (token) {
-      // Add Bearer token to Authorization header
+      // Standard Authorization header
       config.headers.Authorization = `Bearer ${token}`;
+      // Fallback header — some hosting reverse proxies strip Authorization;
+      // the backend guard accepts this as an alternative channel.
+      config.headers['X-Firebase-Token'] = token;
     }
     
     return config;
