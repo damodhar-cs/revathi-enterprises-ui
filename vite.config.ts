@@ -1,8 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import dotenv from "dotenv";
-dotenv.config();
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -82,7 +80,9 @@ export default defineConfig({
     port: 8000,
     proxy: {
       "/api": {
-        target: process.env.VITE_BACKEND_URL,
+        // Dev server only — in production Vite bakes VITE_BACKEND_URL into the bundle.
+        // The local backend always runs on :3000, so hardcode it here.
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ""),
