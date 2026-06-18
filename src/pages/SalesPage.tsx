@@ -580,7 +580,7 @@ const SalesPage: React.FC = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedItems.map((sale: Sale) => (
-                      <tr key={sale.uid} className="hover:bg-gray-50">
+                      <tr key={sale.uid} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/sales/${sale.uid}`)}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="h-10 w-10 flex-shrink-0">

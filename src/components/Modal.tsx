@@ -50,9 +50,9 @@ export const Modal: React.FC<ModalProps> = ({
         </span>
 
         <div
-          className={`inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:align-middle ${sizeClasses[size]}`}
+          className={`inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:align-middle ${sizeClasses[size]} max-h-[95vh]`}
         >
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 overflow-y-auto max-h-[95vh]">
             <div className="flex items-center justify-between mb-4">
               {title && (
                 <h3 className="text-lg font-medium leading-6 text-gray-900">

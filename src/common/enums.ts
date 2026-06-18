@@ -15,6 +15,12 @@ export const BRAND_OPTIONS = [
   "Xiaomi",
   "Redmi",
   "Realme",
+  "Nothing",
+  "POCO",
+  "Motorola",
+  "Infinix",
+  "Itel",
+  "HMD",
 ] as const;
 
 // Category options (matches backend PRODUCT_TYPE_ENUM)
@@ -37,6 +43,7 @@ export const COLOR_OPTIONS = [
   "Green",
   "Red",
   "Yellow",
+  "Brown",
 ] as const;
 
 // Material options (for variant attributes)

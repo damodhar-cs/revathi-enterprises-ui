@@ -6,6 +6,7 @@ import { Button } from './Button'
 import { Input } from './Input'
 import { Modal } from './Modal'
 import { Product } from '../types/index'
+import { BRAND_OPTIONS, CATEGORY_OPTIONS } from '../common/enums'
 
 interface ProductFormProps {
   isOpen: boolean
@@ -65,9 +66,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [item, reset])
 
-  // Use enums from backend
-  const categories = ['Mobile', 'Accessories', 'Tablets', 'Smartwatches']
-  const brands = ['Vivo', 'Oppo', 'Apple', 'Samsung', 'OnePlus', 'Xiaomi', 'Redmi', 'Realme']
+  const categories = CATEGORY_OPTIONS
+  const brands = BRAND_OPTIONS
 
   const onSubmit = (data: any) => {
     const productData: Product = {

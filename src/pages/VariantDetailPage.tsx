@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { ArrowLeft, Edit2, ShoppingCart, Package, Info, IndianRupee, Calendar, MapPin, Tag, Cpu, HardDrive, Battery, Smartphone } from 'lucide-react'
+import { ArrowLeft, Edit2, ShoppingCart, Package, Info, IndianRupee, Calendar, MapPin, Tag, Cpu, HardDrive, Smartphone } from 'lucide-react'
 import { Button } from '../components/Button'
 import VariantForm from '../components/VariantForm'
 import SellForm from '../components/SellForm'
@@ -36,7 +36,6 @@ const VariantDetailPage: React.FC = () => {
       const { id, _id, profitMargin, sellingPrice, createdAt, updatedAt, __v, count, ...dataWithoutId } = variantData;
       
       const cleanedData: any = {
-        product_name: dataWithoutId.product_name,
         description: dataWithoutId.description,
         imei: dataWithoutId.imei,
         category: dataWithoutId.category,
@@ -44,7 +43,6 @@ const VariantDetailPage: React.FC = () => {
         supplier: dataWithoutId.supplier,
         cost_price: Number(dataWithoutId.cost_price),
         branch: dataWithoutId.branch,
-        quantity: Number(dataWithoutId.quantity) || 0,
       };
       
       if (dataWithoutId.warranty !== undefined && dataWithoutId.warranty !== null) {
@@ -169,7 +167,7 @@ const VariantDetailPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <Button
                 variant="secondary"
-                onClick={() => navigate(`/variants/${variant.product_uid}`)}
+                onClick={() => navigate('/variants')}
                 className="flex items-center"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -290,15 +288,6 @@ const VariantDetailPage: React.FC = () => {
                         <dd className="mt-1 text-sm text-gray-900">{variant.attributes.storage} GB</dd>
                       </div>
                     )}
-                    {variant.attributes.battery_life && (
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500 flex items-center">
-                          <Battery className="w-4 h-4 mr-1" />
-                          Battery Life
-                        </dt>
-                        <dd className="mt-1 text-sm text-gray-900">{variant.attributes.battery_life} hours</dd>
-                      </div>
-                    )}
                     {variant.attributes.os && (
                       <div>
                         <dt className="text-sm font-medium text-gray-500">Operating System</dt>
@@ -311,26 +300,10 @@ const VariantDetailPage: React.FC = () => {
                         <dd className="mt-1 text-sm text-gray-900">{variant.attributes.processor}</dd>
                       </div>
                     )}
-                    {variant.attributes.material && (
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">Material</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{variant.attributes.material}</dd>
-                      </div>
-                    )}
                     {variant.attributes.weight && (
                       <div>
                         <dt className="text-sm font-medium text-gray-500">Weight</dt>
                         <dd className="mt-1 text-sm text-gray-900">{variant.attributes.weight} g</dd>
-                      </div>
-                    )}
-                    {variant.attributes.dimensions && (
-                      <div className="sm:col-span-2 lg:col-span-3">
-                        <dt className="text-sm font-medium text-gray-500">Dimensions</dt>
-                        <dd className="mt-1 text-sm text-gray-900">
-                          {variant.attributes.dimensions.height && `H: ${variant.attributes.dimensions.height}mm`}
-                          {variant.attributes.dimensions.width && ` × W: ${variant.attributes.dimensions.width}mm`}
-                          {variant.attributes.dimensions.depth && ` × D: ${variant.attributes.dimensions.depth}mm`}
-                        </dd>
                       </div>
                     )}
                   </dl>

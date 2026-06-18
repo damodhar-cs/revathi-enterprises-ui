@@ -138,7 +138,6 @@ export interface Variant {
   profit_margin?: number;
   quantity: number;
   warranty?: number; // in years
-  image?: string;
   notes?: string;
   attributes?: VariantAttributes;
   created_by?: string;

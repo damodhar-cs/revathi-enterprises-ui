@@ -7,7 +7,7 @@ import VariantForm from '../components/VariantForm'
 import FilterPanel from '../components/FilterPanel'
 import { Variant } from '../types'
 import api, { variantsApi } from '../services/api'
-import { MIN_STOCK_COUNT, DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/common/constants'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/common/constants'
 import { BRANCH_OPTIONS, BRAND_OPTIONS, CATEGORY_OPTIONS } from '@/common/enums'
 import { capitalizeFirst } from '../utils/textUtils'
 
@@ -137,12 +137,6 @@ const Variants: React.FC = () => {
     setCurrentPage(1)
   }
 
-  const getStatusBadge = (quantity: number) => {
-    if (quantity === 0) return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Out of Stock</span>
-    if (quantity < MIN_STOCK_COUNT) return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Low Stock</span>
-    return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">In Stock</span>
-  }
-
   const handleAddVariant = () => {
     setEditingItem(null)
     setIsAddModalOpen(true)
@@ -179,7 +173,6 @@ const Variants: React.FC = () => {
         brand: dataWithoutId.brand,
         branch: dataWithoutId.branch,
         cost_price: Number(dataWithoutId.cost_price),
-        quantity: Number(dataWithoutId.quantity) || 0,
       };
       
       // Add optional fields only if they have values
@@ -191,9 +184,6 @@ const Variants: React.FC = () => {
       }
       if (dataWithoutId.selling_price) {
         cleanedData.selling_price = Number(dataWithoutId.selling_price);
-      }
-      if (dataWithoutId.image && dataWithoutId.image.trim()) {
-        cleanedData.image = dataWithoutId.image;
       }
       if (dataWithoutId.notes && dataWithoutId.notes.trim()) {
         cleanedData.notes = dataWithoutId.notes;
@@ -251,16 +241,8 @@ const Variants: React.FC = () => {
       if (dataWithoutId.selling_price) {
         cleanedData.selling_price = Number(dataWithoutId.selling_price);
       }
-      if (dataWithoutId.image && dataWithoutId.image.trim()) {
-        cleanedData.image = dataWithoutId.image;
-      }
       if (dataWithoutId.notes && dataWithoutId.notes.trim()) {
         cleanedData.notes = dataWithoutId.notes;
-      }
-      
-      // Add quantity only if it's being updated (not always required for updates)
-      if (dataWithoutId.quantity !== undefined) {
-        cleanedData.quantity = Number(dataWithoutId.quantity);
       }
       
       // Add warranty if provided
@@ -483,7 +465,7 @@ const Variants: React.FC = () => {
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by variant title..."
+                placeholder="Search by title or IMEI..."
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -557,8 +539,6 @@ const Variants: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RAM</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Storage</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
@@ -586,12 +566,6 @@ const Variants: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.brand}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.branch}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.quantity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(item.quantity)}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {item.attributes?.ram ? `${item.attributes.ram} GB` : 'N/A'}
                         </td>
