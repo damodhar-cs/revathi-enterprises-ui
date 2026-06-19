@@ -126,7 +126,7 @@ export interface Variant {
   uid?: string; // Contentstack UID
   product_uid: string; // Reference to parent product UID
   product_name: string; // Denormalized product name
-  title?: string; // CMS title (optional, random uid for CMS integration)
+  name: string;
   description?: string; // Optional
   imei?: string; // Optional IMEI/Variant Code
   category: string;
@@ -148,6 +148,16 @@ export interface Variant {
   updatedAt?: string; // Mongoose timestamp
   count?: number; // Added by aggregation
   __v?: number;
+  product?: { uid: string; title: string }; // Enriched by backend on getOne
+}
+
+export interface ExportVariantsInput {
+  recipientEmail: string;
+  search?: string;
+  category?: string;
+  brand?: string;
+  branch?: string;
+  created_at?: { $gte: string; $lte: string };
 }
 
 // Variant Status Enum (matches backend)

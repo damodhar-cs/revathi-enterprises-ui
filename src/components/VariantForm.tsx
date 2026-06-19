@@ -32,7 +32,7 @@ const attributesSchema = z.object({
 const VariantSchema = z.object({
   product_uid: z.string().min(1, 'Product selection is required'),
   product_name: z.string().optional(),
-  title: z.string().optional().transform(val => val === '' ? undefined : val), // CMS title (optional, backend generates if not provided)
+  name: z.string().min(1, 'Name is required'),
   description: z.string().optional().transform(val => val === '' ? undefined : val),
   imei: z.string().optional().transform(val => val === '' ? undefined : val), // Optional IMEI/Variant Code
   category: z.string().min(1, 'Category is required'),
@@ -93,7 +93,7 @@ export const VariantForm: React.FC<VariantFormProps> = ({
     defaultValues: {
       product_uid: item?.product_uid || '',
       product_name: item?.product_name || '',
-      title: item?.title || '',
+      name: item?.name || '',
       description: item?.description || '',
       imei: item?.imei || '',
       category: item?.category || '',
@@ -122,7 +122,7 @@ export const VariantForm: React.FC<VariantFormProps> = ({
       reset({
         product_uid: item.product_uid,
         product_name: item.product_name || undefined,
-        title: item.title || '',
+        name: item.name || '',
         description: item.description,
         imei: item.imei,
         category: item.category,
@@ -145,7 +145,7 @@ export const VariantForm: React.FC<VariantFormProps> = ({
       reset({
         product_uid: '',
         product_name: '',
-        title: '',
+        name: '',
         description: '',
         imei: '',
         category: '',
@@ -241,7 +241,7 @@ export const VariantForm: React.FC<VariantFormProps> = ({
                 <div className="relative">
                   <input
                     type="text"
-                    value={isEdit ? (item?.product_name ? `${item.product_name} (${item.brand} - ${item.category})` : (item?.title || '')) : productSearchTerm}
+                    value={isEdit ? (item?.product_name ? `${item.product_name} (${item.brand} - ${item.category})` : (item?.name || '')) : productSearchTerm}
                     onChange={(e) => {
                       if (!isEdit) {
                         setProductSearchTerm(e.target.value)
@@ -332,6 +332,13 @@ export const VariantForm: React.FC<VariantFormProps> = ({
                 <p className="mt-1 text-sm text-red-600">{errors.product_uid.message}</p>
               )}
             </div>
+            <Input
+              {...register('name')}
+              label="Name"
+              placeholder="e.g., iPhone 15 Pro 256GB Black"
+              error={errors.name?.message}
+              isRequired
+            />
             <Input
               {...register('imei')}
               label="IMEI/Variant Code"

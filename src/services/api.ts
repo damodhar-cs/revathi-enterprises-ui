@@ -4,6 +4,7 @@ import {
   Product,
   ProductsQueryParams,
   VariantsQueryParams,
+  ExportVariantsInput,
 } from "../types";
 
 // Use backend URL from environment variable (production) or proxy path (development)
@@ -104,6 +105,12 @@ export const variantsApi = {
   // Get a single variant by uid
   getVariant: async (uid: string): Promise<Variant> => {
     const response = await api.get(`/variants/${uid}`);
+    return response.data;
+  },
+
+  // Export variants to Excel and send via email
+  exportVariants: async (input: ExportVariantsInput) => {
+    const response = await api.post("/variants/export", input);
     return response.data;
   },
 };

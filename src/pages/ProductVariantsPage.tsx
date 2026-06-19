@@ -145,8 +145,8 @@ const ProductVariantsPage: React.FC = () => {
       };
       
       // Add optional fields only if they have values
-      if (dataWithoutId.title && dataWithoutId.title.trim()) {
-        cleanedData.title = dataWithoutId.title;
+      if (dataWithoutId.name && dataWithoutId.name.trim()) {
+        cleanedData.name = dataWithoutId.name;
       }
       if (dataWithoutId.supplier && dataWithoutId.supplier.trim()) {
         cleanedData.supplier = dataWithoutId.supplier;
@@ -186,7 +186,7 @@ const ProductVariantsPage: React.FC = () => {
   // Update variant mutation
   const updateVariantMutation = useMutation(
     (variantData: any) => {
-      const { id, _id, uid, profit_margin, profitMargin, createdAt, updatedAt, created_at, updated_at, __v, count, title, ...dataWithoutId } = variantData;
+      const { id, _id, uid, profit_margin, profitMargin, createdAt, updatedAt, created_at, updated_at, __v, count, ...dataWithoutId } = variantData;
       const variantUid = uid || _id || id;
       
       const cleanedData: any = {

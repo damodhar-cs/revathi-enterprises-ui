@@ -20,7 +20,7 @@ interface ProductFormProps {
 
 // Simplified schema for parent products (matches backend CreateProductsInputDto)
 const productSchema = z.object({
-  title: z.string().min(2, 'Product title is required'),
+  title: z.string().min(2, 'Product name is required'),
   brand: z.string().min(1, 'Brand is required'),
   category: z.string().min(1, 'Category is required'),
 })
@@ -102,7 +102,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           <div className="space-y-4">
             <Input
               {...register('title')}
-              label="Product Title"
+              label="Product Name"
               placeholder="e.g., iPhone 15 Pro Max"
               error={errors.title?.message}
               isRequired

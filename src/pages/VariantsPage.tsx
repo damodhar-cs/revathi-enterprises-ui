@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Search, Filter, Package, Eye, Edit2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw } from 'lucide-react'
+import { Plus, Search, Filter, Package, Eye, Edit2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw, Download, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { Button } from '../components/Button'
 import VariantForm from '../components/VariantForm'
@@ -31,6 +31,12 @@ const Variants: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Variant | null>(null)
   const [mutationError, setMutationError] = useState('')
+
+  // Export state
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [exportEmail, setExportEmail] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportMessage, setExportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -142,6 +148,37 @@ const Variants: React.FC = () => {
     setIsAddModalOpen(true)
   }
 
+  const handleExport = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!exportEmail || !emailRegex.test(exportEmail)) {
+      setExportMessage({ type: 'error', text: 'Please enter a valid email address' })
+      return
+    }
+
+    setIsExporting(true)
+    setExportMessage(null)
+
+    try {
+      await variantsApi.exportVariants({
+        recipientEmail: exportEmail,
+        search: searchTerm || undefined,
+        category: appliedCategory || undefined,
+        brand: appliedBrand || undefined,
+        branch: appliedBranch || undefined,
+      })
+      setExportMessage({ type: 'success', text: `Variants export will be sent to ${exportEmail} shortly!` })
+      setTimeout(() => {
+        setShowExportModal(false)
+        setExportEmail('')
+        setExportMessage(null)
+      }, 2000)
+    } catch (error: any) {
+      setExportMessage({ type: 'error', text: error.response?.data?.message || 'Failed to export variants. Please try again.' })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const handleEditVariant = (item: Variant) => {
     // Navigate to variant detail page
     const variantUid = item.uid || item._id
@@ -176,8 +213,8 @@ const Variants: React.FC = () => {
       };
       
       // Add optional fields only if they have values
-      if (dataWithoutId.title && dataWithoutId.title.trim()) {
-        cleanedData.title = dataWithoutId.title;
+      if (dataWithoutId.name && dataWithoutId.name.trim()) {
+        cleanedData.name = dataWithoutId.name;
       }
       if (dataWithoutId.supplier && dataWithoutId.supplier.trim()) {
         cleanedData.supplier = dataWithoutId.supplier;
@@ -218,11 +255,9 @@ const Variants: React.FC = () => {
   // Update variant mutation
   const updateVariantMutation = useMutation(
     (variantData: any) => {
-      const { id, _id, uid, profit_margin, profitMargin, createdAt, updatedAt, created_at, updated_at, __v, count, title, ...dataWithoutId } = variantData;
+      const { id, _id, uid, profit_margin, profitMargin, createdAt, updatedAt, created_at, updated_at, __v, count, ...dataWithoutId } = variantData;
       const variantUid = uid || _id || id; // Use uid first, fallback to _id or id
-      
-      // Create clean data object with only allowed fields for update (matching backend UpdateVariantDto)
-      // Note: UpdateVariantDto excludes 'title' field
+
       const cleanedData: any = {
         product_name: dataWithoutId.product_name,
         product_uid: dataWithoutId.product_uid,
@@ -446,14 +481,24 @@ const Variants: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Variants Management</h1>
           <p className="text-gray-600">Manage product variants with detailed specifications</p>
         </div>
-        <Button 
-          onClick={handleAddVariant} 
-          className="inline-flex items-center"
-          disabled={createVariantMutation.isLoading || updateVariantMutation.isLoading}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Variant
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => setShowExportModal(true)}
+            className="inline-flex items-center"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+          <Button
+            onClick={handleAddVariant}
+            className="inline-flex items-center"
+            disabled={createVariantMutation.isLoading || updateVariantMutation.isLoading}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Variant
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -465,7 +510,7 @@ const Variants: React.FC = () => {
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by title or IMEI..."
+                placeholder="Search by name or IMEI..."
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -534,7 +579,7 @@ const Variants: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant Name</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IMEI/Variant Code</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
@@ -558,7 +603,7 @@ const Variants: React.FC = () => {
                               </div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{capitalizeFirst(item.title || item.product_name)}</div>
+                              <div className="text-sm font-medium text-gray-900">{capitalizeFirst(item.name || item.product_name)}</div>
                             </div>
                           </div>
                         </td>
@@ -657,6 +702,112 @@ const Variants: React.FC = () => {
         error={mutationError}
         isLoading={createVariantMutation.isLoading || updateVariantMutation.isLoading}
       />
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+              onClick={() => !isExporting && setShowExportModal(false)}
+            />
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              {/* Header */}
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mr-3">
+                      <Download className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">Export Variants Data</h3>
+                      <p className="text-sm text-gray-500">Send variants report to your email</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => !isExporting && setShowExportModal(false)}
+                    className="text-gray-400 hover:text-gray-500"
+                    disabled={isExporting}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Applied filters summary */}
+                <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">Export Details:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Total Records: {totalItems}</li>
+                    {searchTerm && <li>• Search: {searchTerm}</li>}
+                    {appliedCategory && <li>• Category: {appliedCategory}</li>}
+                    {appliedBrand && <li>• Brand: {appliedBrand}</li>}
+                    {appliedBranch && <li>• Branch: {appliedBranch}</li>}
+                    {!searchTerm && !appliedCategory && !appliedBrand && !appliedBranch && (
+                      <li>• No filters applied (all variants)</li>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Email input */}
+                <div className="mb-4">
+                  <label htmlFor="exportEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                    Recipient Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="exportEmail"
+                    value={exportEmail}
+                    onChange={(e) => setExportEmail(e.target.value)}
+                    placeholder="Enter email address"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    disabled={isExporting}
+                    onKeyDown={(e) => e.key === 'Enter' && handleExport()}
+                  />
+                </div>
+
+                {/* Success / Error message */}
+                {exportMessage && (
+                  <div className={`rounded-md p-4 mb-4 ${
+                    exportMessage.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                  }`}>
+                    <p className="text-sm font-medium">{exportMessage.text}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                <Button
+                  variant="primary"
+                  onClick={handleExport}
+                  disabled={isExporting || !exportEmail}
+                  className="w-full sm:w-auto"
+                >
+                  {isExporting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Export &amp; Send
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => { setShowExportModal(false); setExportMessage(null); setExportEmail('') }}
+                  disabled={isExporting}
+                  className="w-full sm:w-auto mt-3 sm:mt-0"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

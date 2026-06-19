@@ -36,6 +36,7 @@ const VariantDetailPage: React.FC = () => {
       const { id, _id, profitMargin, sellingPrice, createdAt, updatedAt, __v, count, ...dataWithoutId } = variantData;
       
       const cleanedData: any = {
+        name: dataWithoutId.name,
         description: dataWithoutId.description,
         imei: dataWithoutId.imei,
         category: dataWithoutId.category,
@@ -174,8 +175,8 @@ const VariantDetailPage: React.FC = () => {
                 Back
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{variant.product_name}</h1>
-                <p className="text-sm text-gray-500">SKU: {variant.imei}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{variant.name}</h1>
+                <p className="text-sm text-gray-500">{variant.product_name}{variant.imei ? ` · SKU: ${variant.imei}` : ''}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -226,8 +227,12 @@ const VariantDetailPage: React.FC = () => {
               <div className="px-6 py-4">
                 <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
                   <div>
+                    <dt className="text-sm font-medium text-gray-500">Variant Name</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{variant.name}</dd>
+                  </div>
+                  <div>
                     <dt className="text-sm font-medium text-gray-500">Product Name</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{variant.product_name}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{variant.product_name || '—'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Description</dt>
