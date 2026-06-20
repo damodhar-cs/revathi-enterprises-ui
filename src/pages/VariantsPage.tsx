@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Plus, Search, Filter, Package, Eye, Edit2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw, Download, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
+import toast from 'react-hot-toast'
+import { MESSAGES } from '../common/messages.constants'
 import { Button } from '../components/Button'
 import VariantForm from '../components/VariantForm'
 import FilterPanel from '../components/FilterPanel'
@@ -239,15 +241,17 @@ const Variants: React.FC = () => {
       return variantsApi.createVariant(cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.VARIANT.CREATED);
         queryClient.invalidateQueries('variants');
         setIsAddModalOpen(false);
         setMutationError('');
-        // Refetch to get the latest aggregated data
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to create variant');
+        const msg = err.response?.data?.message || MESSAGES.VARIANT.CREATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );
@@ -293,15 +297,17 @@ const Variants: React.FC = () => {
       return variantsApi.updateVariant(variantUid, cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.VARIANT.UPDATED);
         queryClient.invalidateQueries('variants');
         setIsAddModalOpen(false);
         setMutationError('');
-        // Refetch to get the latest aggregated data
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to update variant');
+        const msg = err.response?.data?.message || MESSAGES.VARIANT.UPDATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );

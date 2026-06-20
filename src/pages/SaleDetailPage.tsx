@@ -171,7 +171,7 @@ const SaleDetailPage: React.FC = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Sale Details</h1>
-                <p className="text-sm text-gray-500">Receipt: {sale.receiptNumber}</p>
+                <p className="text-sm text-gray-500">Invoice No: {(sale as any).invoice_number}</p>
               </div>
             </div>
             
@@ -217,7 +217,7 @@ const SaleDetailPage: React.FC = () => {
                   </div>
                   {(sale as any).imei && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">SKU</dt>
+                      <dt className="text-sm font-medium text-gray-500">IMEI</dt>
                       <dd className="mt-1 text-sm text-gray-900">{(sale as any).imei}</dd>
                     </div>
                   )}
@@ -378,10 +378,10 @@ const SaleDetailPage: React.FC = () => {
                     </dd>
                   </div>
                 )}
-                {(sale as any).receipt_number && (
+                {(sale as any).invoice_number && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Receipt Number</dt>
-                    <dd className="mt-1 text-sm font-mono text-gray-900">{(sale as any).receipt_number}</dd>
+                    <dt className="text-sm font-medium text-gray-500">Invoice Number</dt>
+                    <dd className="mt-1 text-sm font-mono text-gray-900">{String((sale as any).invoice_number).padStart(5, '0')}</dd>
                   </div>
                 )}
               </div>
@@ -432,11 +432,11 @@ const SaleDetailPage: React.FC = () => {
               </div>
               <div className="px-6 py-4 space-y-3">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Sale ID</dt>
+                  <dt className="text-sm font-medium text-gray-500">Sale UID</dt>
                   <dd className="mt-1 text-sm text-gray-900 font-mono">{(sale as any).uid}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Variant ID</dt>
+                  <dt className="text-sm font-medium text-gray-500">Variant UID</dt>
                   <dd className="mt-1 text-sm text-gray-900 font-mono">{(sale as any).variant_uid}</dd>
                 </div>
               </div>

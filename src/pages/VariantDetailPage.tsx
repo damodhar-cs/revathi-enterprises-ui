@@ -2,11 +2,13 @@ import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { ArrowLeft, Edit2, ShoppingCart, Package, Info, IndianRupee, Calendar, MapPin, Tag, Cpu, HardDrive, Smartphone } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { Button } from '../components/Button'
 import VariantForm from '../components/VariantForm'
 import SellForm from '../components/SellForm'
 // import type { Variant } from '../types'
 import { variantsApi, salesApi } from '../services/api'
+import { MESSAGES } from '../common/messages.constants'
 
 const VariantDetailPage: React.FC = () => {
   const { variantId } = useParams<{ variantId: string }>()
@@ -57,7 +59,8 @@ const VariantDetailPage: React.FC = () => {
       return variantsApi.updateVariant(variantId!, cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.VARIANT.UPDATED);
         queryClient.invalidateQueries(['variant', variantId]);
         queryClient.invalidateQueries('variants');
         queryClient.invalidateQueries('product-variants');
@@ -65,7 +68,9 @@ const VariantDetailPage: React.FC = () => {
         setMutationError('');
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to update variant');
+        const msg = err.response?.data?.message || MESSAGES.VARIANT.UPDATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );
@@ -76,17 +81,17 @@ const VariantDetailPage: React.FC = () => {
       return salesApi.createSale(saleData);
     },
     {
-      onSuccess: () => {
-        // No need to invalidate variant queries since we're navigating away
-        // The variant will be refreshed when/if user navigates back to this page
-        queryClient.invalidateQueries('sales'); // Invalidate sales queries to refresh data
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.SALE.CREATED);
+        queryClient.invalidateQueries('sales');
         setIsSellModalOpen(false);
         setSellError('');
-        // Navigate to sales listing to show the new sale
         navigate('/sales');
       },
       onError: (err: any) => {
-        setSellError(err.response?.data?.message || 'Failed to complete sale');
+        const msg = err.response?.data?.message || MESSAGES.SALE.CREATE_FAILED;
+        toast.error(msg);
+        setSellError(msg);
       },
     }
   );
@@ -176,7 +181,7 @@ const VariantDetailPage: React.FC = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{variant.name}</h1>
-                <p className="text-sm text-gray-500">{variant.product_name}{variant.imei ? ` · SKU: ${variant.imei}` : ''}</p>
+                <p className="text-sm text-gray-500">{variant.product_name}{variant.imei ? ` · IMEI: ${variant.imei}` : ''}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -381,11 +386,11 @@ const VariantDetailPage: React.FC = () => {
               </div>
               <div className="px-6 py-4 space-y-3">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Variant ID</dt>
-                  <dd className="mt-1 text-sm text-gray-900 font-mono">{variant._id}</dd>
+                  <dt className="text-sm font-medium text-gray-500">Variant UID</dt>
+                  <dd className="mt-1 text-sm text-gray-900 font-mono">{variant.uid}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Product ID</dt>
+                  <dt className="text-sm font-medium text-gray-500">Product UID</dt>
                   <dd className="mt-1 text-sm text-gray-900 font-mono">{variant.product_uid}</dd>
                 </div>
               </div>

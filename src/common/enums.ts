@@ -73,3 +73,7 @@ export const FINANCE_PROVIDER_OPTIONS = [
   "IDFC",
   "Home Credit",
 ] as const;
+
+// Sale status options (matches backend SALE_STATUS_ENUM)
+export const SALE_STATUS_OPTIONS = ["active", "cancelled"] as const;
+export type SaleStatus = typeof SALE_STATUS_OPTIONS[number];

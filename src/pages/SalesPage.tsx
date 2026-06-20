@@ -5,7 +5,7 @@ import { Search, Filter, Package, Eye, Calendar, TrendingUp, DollarSign, Shoppin
 import { Button } from '../components/Button'
 import FilterPanel from '../components/FilterPanel'
 import { salesApi } from '../services/api'
-import { BRANCH_OPTIONS, BRAND_OPTIONS } from '../common/enums'
+import { BRANCH_OPTIONS, BRAND_OPTIONS, type SaleStatus } from '../common/enums'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
 import { capitalizeFirst } from '../utils/textUtils'
 
@@ -34,7 +34,8 @@ interface Sale {
   payment_method?: string;
   finance_provider?: string; // Finance provider (if payment_method is Finance)
   emi_duration?: number; // EMI duration in months (if payment_method is Finance)
-  receipt_number?: string;
+  invoice_number: string;
+  status: SaleStatus;
   notes?: string;
   color?: string;
   ram?: number;

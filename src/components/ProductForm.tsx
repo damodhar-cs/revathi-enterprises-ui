@@ -72,11 +72,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const onSubmit = (data: any) => {
     const productData: Product = {
       ...data,
+      uid: item?.uid || '',
       _id: item?._id || '',
       createdAt: item?.createdAt || '',
       updatedAt: item?.updatedAt || '',
     }
-    
+
     onSave(productData)
     handleClose()
   }

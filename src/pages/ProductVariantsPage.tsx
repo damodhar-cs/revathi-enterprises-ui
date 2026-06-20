@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Search, Filter, Package, Edit2, Trash2, RefreshCw, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
+import toast from 'react-hot-toast'
+import { MESSAGES } from '../common/messages.constants'
 import { Button } from '../components/Button'
 import VariantForm from '../components/VariantForm'
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal'
@@ -170,15 +172,18 @@ const ProductVariantsPage: React.FC = () => {
       return variantsApi.createVariant(cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.VARIANT.CREATED);
         queryClient.invalidateQueries('product-variants');
-        queryClient.invalidateQueries('variants'); // Also invalidate main variants list
+        queryClient.invalidateQueries('variants');
         setIsAddModalOpen(false);
         setMutationError('');
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to create variant');
+        const msg = err.response?.data?.message || MESSAGES.VARIANT.CREATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );
@@ -226,15 +231,18 @@ const ProductVariantsPage: React.FC = () => {
       return variantsApi.updateVariant(variantUid, cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.VARIANT.UPDATED);
         queryClient.invalidateQueries('product-variants');
-        queryClient.invalidateQueries('variants'); // Also invalidate main variants list
+        queryClient.invalidateQueries('variants');
         setIsAddModalOpen(false);
         setMutationError('');
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to update variant');
+        const msg = err.response?.data?.message || MESSAGES.VARIANT.UPDATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );
@@ -243,14 +251,17 @@ const ProductVariantsPage: React.FC = () => {
   const deleteVariantMutation = useMutation(
     (variantId: string) => variantsApi.deleteVariant(variantId),
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.VARIANT.DELETED);
         queryClient.invalidateQueries('product-variants');
-        queryClient.invalidateQueries('variants'); // Also invalidate main variants list
+        queryClient.invalidateQueries('variants');
         setMutationError('');
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to delete variant');
+        const msg = err.response?.data?.message || MESSAGES.VARIANT.DELETE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );

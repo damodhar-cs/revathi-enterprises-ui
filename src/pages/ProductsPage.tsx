@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Search, Filter, Package, Edit2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
+import toast from 'react-hot-toast'
+import { MESSAGES } from '../common/messages.constants'
 import { Button } from '../components/Button'
 import FilterPanel from '../components/FilterPanel'
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal'
@@ -145,14 +147,17 @@ const Products: React.FC = () => {
       return productsApi.createProduct(cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.PRODUCT.CREATED);
         queryClient.invalidateQueries('products');
         setIsAddModalOpen(false);
         setMutationError('');
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to create product');
+        const msg = err.response?.data?.message || MESSAGES.PRODUCT.CREATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );
@@ -172,14 +177,17 @@ const Products: React.FC = () => {
       return productsApi.updateProduct(productUid, cleanedData);
     },
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.PRODUCT.UPDATED);
         queryClient.invalidateQueries('products');
         setIsAddModalOpen(false);
         setMutationError('');
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to update product');
+        const msg = err.response?.data?.message || MESSAGES.PRODUCT.UPDATE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );
@@ -188,13 +196,16 @@ const Products: React.FC = () => {
   const deleteProductMutation = useMutation(
     (productUid: string) => productsApi.deleteProduct(productUid),
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
+        toast.success(data?.message || MESSAGES.PRODUCT.DELETED);
         queryClient.invalidateQueries('products');
         setMutationError('');
         refetch();
       },
       onError: (err: any) => {
-        setMutationError(err.response?.data?.message || 'Failed to delete product');
+        const msg = err.response?.data?.message || MESSAGES.PRODUCT.DELETE_FAILED;
+        toast.error(msg);
+        setMutationError(msg);
       },
     }
   );

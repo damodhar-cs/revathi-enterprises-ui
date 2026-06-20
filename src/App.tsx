@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from 'react-query'
+import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
@@ -21,6 +22,39 @@ const queryClient = new QueryClient()
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#f0fdf4',
+            color: '#374151',
+            border: '1px solid #bbf7d0',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            fontSize: '16px',
+            fontWeight: '500',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+            maxWidth: '420px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#00c853',
+              secondary: '#ffffff',
+            },
+          },
+          error: {
+            style: {
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+            },
+            iconTheme: {
+              primary: '#dc2626',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
       <AuthProvider>
         <Router>
           <Routes>

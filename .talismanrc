@@ -6,4 +6,6 @@ fileignoreconfig:
   checksum: b6fb0ff30860739282041f567f330c01c44ff64692a55d9374f63e956f226872
 - filename: src/pages/VariantsPage.tsx
   checksum: d714fb4c56d234e3fe73f07e2699994de8002903212a69f0039b5c50b7c82181
+- filename: package-lock.json
+  checksum: 94e5ced654af51ba95aef11337b0bf4aea65ee82426e26b63ec116d1928a098d
   version: "1.0"
