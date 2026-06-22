@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from 'react-query'
-import { Search, Filter, Package, Eye, Calendar, TrendingUp, DollarSign, ShoppingCart, Phone, User, RefreshCw, Download, X } from 'lucide-react'
+import { Search, Filter, Package, Eye, Calendar, TrendingUp, IndianRupee, ShoppingCart, Phone, User, RefreshCw, Download, X } from 'lucide-react'
 import { Button } from '../components/Button'
 import FilterPanel from '../components/FilterPanel'
 import { salesApi } from '../services/api'
-import { BRANCH_OPTIONS, BRAND_OPTIONS, type SaleStatus } from '../common/enums'
+import { BRANCH_OPTIONS, BRAND_OPTIONS, PAYMENT_METHOD_OPTIONS, type SaleStatus } from '../common/enums'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../common/constants'
 import { capitalizeFirst } from '../utils/textUtils'
 
@@ -54,7 +54,8 @@ interface Sale {
 const SalesPage: React.FC = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+
   // Filter states - selected vs applied
   const [selectedBranch, setSelectedBranch] = useState('')
   const [appliedBranch, setAppliedBranch] = useState('')
@@ -62,6 +63,8 @@ const SalesPage: React.FC = () => {
   const [appliedBrand, setAppliedBrand] = useState('')
   const [selectedDateRange, setSelectedDateRange] = useState({ start: '', end: '' })
   const [appliedDateRange, setAppliedDateRange] = useState({ start: '', end: '' })
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
+  const [appliedPaymentMethod, setAppliedPaymentMethod] = useState('')
   
   const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [isApplyingFilters, setIsApplyingFilters] = useState(false)
@@ -71,30 +74,48 @@ const SalesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE)
 
+  // Debounce search — resets to page 1 on each new term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   // Export modal state
   const [showExportModal, setShowExportModal] = useState(false)
   const [recipientEmail, setRecipientEmail] = useState('')
   const [isExporting, setIsExporting] = useState(false)
   const [exportMessage, setExportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // Fetch sales from API with applied filters
-  const { data: salesResponse, isLoading, error, refetch } = useQuery(
-    ['sales', { 
+  // Fetch sales — server-side pagination, search, and filters
+  const { data: salesResponse, isLoading, isFetching, error, refetch } = useQuery(
+    ['sales', {
+      search: debouncedSearchTerm,
       branch: appliedBranch,
       brand: appliedBrand,
-      dateRange: appliedDateRange
+      paymentMethod: appliedPaymentMethod,
+      dateRange: appliedDateRange,
+      page: currentPage,
+      pageSize: itemsPerPage,
     }],
     () => {
       const filters: any = {
+        search: debouncedSearchTerm || undefined,
         branch: appliedBranch || undefined,
         brand: appliedBrand || undefined,
+        payment_method: appliedPaymentMethod || undefined,
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        sort: 'created_at',
+        order: -1,
       };
 
-      // Date range filter in CMS format (as object, not stringified)
       if (appliedDateRange.start && appliedDateRange.end) {
         filters.created_at = {
           $gte: new Date(appliedDateRange.start).toISOString(),
-          $lte: new Date(appliedDateRange.end).toISOString()
+          $lte: new Date(appliedDateRange.end).toISOString(),
         };
       }
 
@@ -109,24 +130,25 @@ const SalesPage: React.FC = () => {
     }
   )
 
-  // Fetch sales statistics
+  // Fetch sales statistics (full filter set, no pagination)
   const { data: statistics } = useQuery(
-    ['sales-statistics', { 
+    ['sales-statistics', {
       branch: appliedBranch,
       brand: appliedBrand,
-      dateRange: appliedDateRange
+      paymentMethod: appliedPaymentMethod,
+      dateRange: appliedDateRange,
     }],
     () => {
       const filters: any = {
         branch: appliedBranch || undefined,
         brand: appliedBrand || undefined,
+        payment_method: appliedPaymentMethod || undefined,
       };
 
-      // Date range filter for statistics (as object, not stringified)
       if (appliedDateRange.start && appliedDateRange.end) {
         filters.created_at = {
           $gte: new Date(appliedDateRange.start).toISOString(),
-          $lte: new Date(appliedDateRange.end).toISOString()
+          $lte: new Date(appliedDateRange.end).toISOString(),
         };
       }
 
@@ -140,37 +162,12 @@ const SalesPage: React.FC = () => {
     }
   )
 
-  // Extract sales items and count from response
-  const sales = salesResponse?.items || []
-  const totalSalesCount = salesResponse?.count || 0
+  // Server returns the current page items already sorted and filtered
+  const paginatedItems = salesResponse?.items || []
+  const totalItems = salesResponse?.count || 0
 
-  // Sort sales by date (newest first)
-  const sortedSales = [...sales].sort((a, b) => {
-    const dateA = new Date(a.created_at).getTime();
-    const dateB = new Date(b.created_at).getTime();
-    return dateB - dateA;
-  });
-  
-  const filteredItems = sortedSales.filter((sale: Sale) => {
-    const searchLower = searchTerm.toLowerCase();
-    const title = (sale.title || sale.product_name || '').toLowerCase();
-    const imei = (sale.imei || '').toLowerCase();
-    const brand = (sale.brand || '').toLowerCase();
-    const customerName = (sale.customer?.name || '').toLowerCase();
-    const customerPhone = sale.customer?.phone || '';
-    
-    return title.includes(searchLower) ||
-           imei.includes(searchLower) ||
-           brand.includes(searchLower) ||
-           customerName.includes(searchLower) ||
-           customerPhone.includes(searchTerm);
-  })
-
-  // Pagination
-  const totalItems = filteredItems.length
   const totalPages = Math.ceil(totalItems / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedItems = filteredItems.slice(startIndex, startIndex + itemsPerPage)
   const paginationOptions = PAGE_SIZE_OPTIONS
 
   const handlePageChange = (page: number) => {
@@ -185,12 +182,13 @@ const SalesPage: React.FC = () => {
   // Apply filters
   const applyFilters = async () => {
     setIsApplyingFilters(true)
-    
+
     // Small delay for better UX
     setTimeout(() => {
       setAppliedBranch(selectedBranch)
       setAppliedBrand(selectedBrand)
       setAppliedDateRange(selectedDateRange)
+      setAppliedPaymentMethod(selectedPaymentMethod)
       setCurrentPage(1) // Reset to first page when filters change
       setShowFilterPanel(false)
       setIsApplyingFilters(false)
@@ -201,7 +199,7 @@ const SalesPage: React.FC = () => {
   // Clear filters
   const clearFilters = async () => {
     setIsClearingFilters(true)
-    
+
     setTimeout(() => {
       setSelectedBranch('')
       setSelectedBrand('')
@@ -209,6 +207,8 @@ const SalesPage: React.FC = () => {
       setAppliedBrand('')
       setSelectedDateRange({ start: '', end: '' })
       setAppliedDateRange({ start: '', end: '' })
+      setSelectedPaymentMethod('')
+      setAppliedPaymentMethod('')
       setCurrentPage(1)
       setIsClearingFilters(false)
       setShowFilterPanel(false)
@@ -235,6 +235,14 @@ const SalesPage: React.FC = () => {
       placeholder: 'All Brands'
     },
     {
+      key: 'paymentMethod',
+      label: 'Payment Mode',
+      type: 'select' as const,
+      value: selectedPaymentMethod,
+      options: PAYMENT_METHOD_OPTIONS.map(method => ({ label: method, value: method })),
+      placeholder: 'All Payment Modes'
+    },
+    {
       key: 'dateRange',
       label: 'Sale Date Range',
       type: 'dateRange' as const,
@@ -248,6 +256,8 @@ const SalesPage: React.FC = () => {
       setSelectedBranch(value as string)
     } else if (key === 'brand') {
       setSelectedBrand(value as string)
+    } else if (key === 'paymentMethod') {
+      setSelectedPaymentMethod(value as string)
     } else if (key === 'dateRange') {
       setSelectedDateRange(value as { start: string; end: string })
     }
@@ -440,7 +450,7 @@ const SalesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-blue-600 font-medium">Total Sales</p>
-                  <p className="text-2xl font-bold text-blue-900">{totalSalesCount}</p>
+                  <p className="text-2xl font-bold text-blue-900">{totalItems}</p>
                 </div>
               </div>
             </div>
@@ -448,7 +458,7 @@ const SalesPage: React.FC = () => {
             <div className="bg-green-50 rounded-lg p-4">
               <div className="flex items-center">
                 <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg mr-3">
-                  <DollarSign className="w-5 h-5 text-green-600" />
+                  <IndianRupee className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-green-600 font-medium">Total Revenue</p>
@@ -493,7 +503,7 @@ const SalesPage: React.FC = () => {
               <Button
                 variant="primary"
                 onClick={() => setShowExportModal(true)}
-                disabled={isLoading || totalSalesCount === 0}
+                disabled={isLoading || totalItems === 0}
                 className="inline-flex items-center"
                 title="Export sales data to Excel"
               >
@@ -520,7 +530,7 @@ const SalesPage: React.FC = () => {
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
-                {(appliedBranch || appliedBrand || appliedDateRange.start || appliedDateRange.end) && (
+                {(appliedBranch || appliedBrand || appliedPaymentMethod || appliedDateRange.start || appliedDateRange.end) && (
                   <span className="ml-2 px-2 py-0.5 text-xs bg-primary-100 text-primary-600 rounded-full">
                     Active
                   </span>
@@ -534,7 +544,16 @@ const SalesPage: React.FC = () => {
       {/* Table Container with Fixed Layout */}
       <div className="flex flex-col h-[calc(100vh-350px)] min-h-[500px] p-6">
         {/* Table View - Scrollable */}
-        <div className="flex-1 bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="flex-1 bg-white rounded-lg shadow-sm border overflow-hidden relative">
+          {/* Re-fetch overlay (shown when refreshing with existing data) */}
+          {isFetching && !isLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-60 z-20 flex items-center justify-center">
+              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-md border">
+                <RefreshCw className="w-4 h-4 text-primary-600 animate-spin" />
+                <span className="text-sm text-gray-600">Updating...</span>
+              </div>
+            </div>
+          )}
           {isLoading ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
@@ -553,13 +572,13 @@ const SalesPage: React.FC = () => {
                 </Button>
               </div>
             </div>
-          ) : filteredItems.length === 0 ? (
+          ) : paginatedItems.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
                 <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No sales found</h3>
                 <p className="text-gray-500 mb-4">
-                  {searchTerm || appliedBranch || appliedBrand || appliedDateRange.start || appliedDateRange.end
+                  {searchTerm || appliedBranch || appliedBrand || appliedPaymentMethod || appliedDateRange.start || appliedDateRange.end
                     ? "Try adjusting your search or filters to find what you're looking for."
                     : "No sales have been recorded yet."}
                 </p>
@@ -649,7 +668,7 @@ const SalesPage: React.FC = () => {
         </div>
 
         {/* Bottom Pagination - Fixed */}
-        {filteredItems.length > 0 && (
+        {totalItems > 0 && (
           <div className="flex-shrink-0 mt-4">
             <PaginationControls />
           </div>
@@ -706,7 +725,7 @@ const SalesPage: React.FC = () => {
                 <div className="bg-blue-50 rounded-lg p-4 mb-4">
                   <h4 className="text-sm font-medium text-blue-900 mb-2">Export Details:</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• Total Records: {totalSalesCount}</li>
+                    <li>• Total Records: {totalItems}</li>
                     {appliedBranch && <li>• Branch: {appliedBranch}</li>}
                     {appliedBrand && <li>• Brand: {appliedBrand}</li>}
                     {appliedDateRange.start && <li>• Start Date: {new Date(appliedDateRange.start).toLocaleDateString('en-IN')}</li>}

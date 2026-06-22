@@ -143,10 +143,14 @@ export const salesApi = {
     search?: string;
     branch?: string;
     brand?: string;
-    created_at?: string; // JSON stringified object
+    payment_method?: string;
+    created_at?: { $gte: string; $lte: string };
+    skip?: number;
+    limit?: number;
+    sort?: string;
+    order?: number;
   }) => {
     const response = await api.post("/sales/search", filters || {});
-    // Return full response with both items and count
     return response.data;
   },
 

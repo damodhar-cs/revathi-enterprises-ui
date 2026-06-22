@@ -1,14 +1,12 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from 'react-query'
-import { 
+import {
   TrendingUp,
-  DollarSign, 
-  ShoppingCart, 
-  Package, 
-  AlertCircle,
+  IndianRupee,
+  ShoppingCart,
+  Package,
   Users,
-  Plus,
   RefreshCw,
   ArrowUp,
   ArrowDown
@@ -132,7 +130,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
+          <Package className="mx-auto h-12 w-12 text-red-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading dashboard</h3>
           <p className="text-gray-500 mb-4">Please try again later.</p>
           <Button onClick={() => refetch()} variant="primary">
@@ -187,7 +185,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 md:p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <p className="text-blue-100 text-sm font-medium">Today's Sales</p>
-            <DollarSign className="w-6 h-6 md:w-8 md:h-8 text-blue-200" />
+            <IndianRupee className="w-6 h-6 md:w-8 md:h-8 text-blue-200" />
           </div>
           <p className="text-2xl md:text-3xl font-bold mb-1">{formatCurrency(stats.todaySales.revenue)}</p>
           <p className="text-blue-100 text-xs md:text-sm">
@@ -228,34 +226,21 @@ const Dashboard: React.FC = () => {
             <Package className="w-6 h-6 md:w-8 md:h-8 text-orange-200" />
           </div>
           <p className="text-2xl md:text-3xl font-bold mb-1">{stats.inventory.totalItems}</p>
-          <div className="flex items-center gap-3 text-xs md:text-sm text-orange-100">
-            <span className="flex items-center">
-              <span className="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
-              {stats.inventory.inStock}
-            </span>
-            <span className="flex items-center">
-              <span className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>
-              {stats.inventory.lowStock}
-            </span>
-            <span className="flex items-center">
-              <span className="w-2 h-2 bg-red-400 rounded-full mr-1"></span>
-              {stats.inventory.outOfStock}
-            </span>
-          </div>
+          <p className="text-xs md:text-sm text-orange-100">variants in stock</p>
         </div>
       </div>
 
       {/* Quick Actions - Mobile Optimized */}
       <div className="bg-white rounded-lg shadow-md p-4 md:p-6 border border-gray-200">
         <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Button
-            variant="primary"
-            onClick={() => navigate('/variants/new')}
+            variant="secondary"
+            onClick={() => navigate('/products')}
             className="flex flex-col items-center justify-center h-20 md:h-24 text-xs md:text-sm"
           >
-            <Plus className="w-5 h-5 md:w-6 md:h-6 mb-1" />
-            Add Variant
+            <Package className="w-5 h-5 md:w-6 md:h-6 mb-1" />
+            Products
           </Button>
           <Button
             variant="secondary"
@@ -280,22 +265,6 @@ const Dashboard: React.FC = () => {
           >
             <Users className="w-5 h-5 md:w-6 md:h-6 mb-1" />
             Customers
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/products')}
-            className="flex flex-col items-center justify-center h-20 md:h-24 text-xs md:text-sm"
-          >
-            <Package className="w-5 h-5 md:w-6 md:h-6 mb-1" />
-            Products
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/variants?stockStatus=lowStock')}
-            className="flex flex-col items-center justify-center h-20 md:h-24 text-xs md:text-sm bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200"
-          >
-            <AlertCircle className="w-5 h-5 md:w-6 md:h-6 mb-1" />
-            Low Stock
           </Button>
         </div>
       </div>
